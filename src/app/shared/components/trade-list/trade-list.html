@@ -355,7 +355,8 @@
             <i class="pi pi-download text-emerald-500 text-xs"></i>
           </div>
           <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-            {{ userRole() === 'sender' ? 'Counterpart Offer' : 'Incoming Offer' }}
+            @if (isReadOnly()) { Counterpart Assets } 
+            @else { {{ userRole() === 'sender' ? 'Counterpart Offer' : 'Incoming Offer' }} }
           </h4>
         </div>
 
@@ -413,7 +414,9 @@
           <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
             <i class="pi pi-upload text-blue-500 text-xs"></i>
           </div>
-          <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Your Selection</h4>
+          <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+            {{ isReadOnly() ? 'Items You Traded' : 'Your Selection' }}
+          </h4>
         </div>
 
         <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">

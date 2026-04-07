@@ -87,6 +87,17 @@ export class TradeList {
     return busy && me && busy.toLowerCase() === me;
   });
 
+  // We reactively fetch trades whenever the currentAccount changes
+  trades = toSignal(
+    toObservable(this.web3Service.currentAccount).pipe(
+      switchMap(account => {
+        if (!account) return of([] as TradeRequest[]);
+        return this.tradeService.getTradesForUser(account);
+      })
+    ),
+    { initialValue: [] as TradeRequest[] }
+  );
+
   // Real-time synchronization: Find the active trade in the live trades pool
   liveTrade = computed(() => this.trades().find(t => t.id === this.activeTradeId()));
   
@@ -98,6 +109,20 @@ export class TradeList {
     
     if (account && tradeId) {
       this.tradeService.setPresence(tradeId, account, isVisible);
+    }
+  });
+
+  // Auto-close modal when trade is completed (for both parties)
+  autoCloseEffect = effect(() => {
+    const status = this.liveTrade()?.status;
+    const isVisible = this.isReviewVisible();
+    
+    if (status === 'completed' && isVisible) {
+      // Delay slightly to ensure user sees the success state if they are the payer
+      setTimeout(() => {
+        this.isReviewVisible.set(false);
+        this.activeTradeId.set(null);
+      }, 2000);
     }
   });
 
@@ -128,9 +153,21 @@ export class TradeList {
     return trade?.lockedByNonPayer === true;
   });
 
-  // Filtered Inventories based on search terms
   filteredReceiverInventory = computed(() => {
     const search = this.receiverSearch().toLowerCase();
+    const trade = this.liveTrade();
+    
+    // If read-only, show historical items from the trade record
+    if (this.isReadOnly() && trade) {
+      const items = this.userRole() === 'sender' ? (trade.items || []) : (trade.receiverItems || []);
+      if (!search) return items;
+      return items.filter(item => 
+        item.name.toLowerCase().includes(search) || 
+        item.contractAddress.toLowerCase().includes(search)
+      );
+    }
+
+    // Otherwise show live inventory
     const items = this.receiverInventory();
     if (!search) return items;
     return items.filter(item => 
@@ -152,16 +189,8 @@ export class TradeList {
     );
   });
 
-  // We reactively fetch trades whenever the currentAccount changes
-  trades = toSignal(
-    toObservable(this.web3Service.currentAccount).pipe(
-      switchMap(account => {
-        if (!account) return of([] as TradeRequest[]);
-        return this.tradeService.getTradesForUser(account);
-      })
-    ),
-    { initialValue: [] as TradeRequest[] }
-  );
+
+
 
   private hasCleanedUp = false;
   private cleanupEffect = toObservable(this.trades).subscribe(trades => {
@@ -224,7 +253,13 @@ export class TradeList {
     // Seed selection with current state using safe null check
     this.selectedReceiverIds.set(new Set(currentItems.map(i => i.tokenId)));
 
-    // Load inventory for the current side to allow editing
+    // For completed trades, we skip loading live inventory as assets are likely gone
+    if (trade.status === 'completed') {
+      this.receiverInventory.set([]);
+      return;
+    }
+
+    // Load live inventory for active trades to allow editing
     const items = await this.nftService.getNftsForOwner(account);
     this.receiverInventory.set(items);
   }
