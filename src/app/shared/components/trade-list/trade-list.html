@@ -1,0 +1,559 @@
+<p-toast></p-toast>
+
+<div class="py-12 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="flex flex-col gap-8 w-full">
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div>
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Trade Center</h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage and track your NFT exchange proposals in real-time</p>
+      </div>
+
+      <div class="flex items-center gap-3 bg-gray-100 dark:bg-surface-900/50 p-1 rounded-xl border border-gray-200 dark:border-surface-800">
+        <p-button label="Inventory" icon="pi pi-th-large" [variant]="'text'" size="small" [routerLink]="['/inventory']">
+        </p-button>
+        <div class="w-px h-4 bg-gray-300 dark:bg-surface-700 mx-1"></div>
+        <div class="px-3 py-1.5 flex items-center gap-2">
+          <i class="pi pi-arrow-right-arrow-left text-emerald-500"></i>
+          <span class="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">Active Trades</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Tabs Container -->
+    <div class="card bg-gray-50/80 dark:bg-surface-950/40 backdrop-blur-md border border-gray-200 dark:border-white/5 rounded-3xl p-6 shadow-2xl">
+      <p-tabs value="received">
+        <p-tablist styleClass="!border-b border-gray-200 dark:!border-white/5 mb-6">
+          <p-tab value="received" class="flex items-center gap-2">
+            <i class="pi pi-download text-sm"></i>
+            <span>Received Requests</span>
+            <p-badge [value]="receivedTrades().length" severity="info" size="small" styleClass="ms-2"></p-badge>
+          </p-tab>
+          <p-tab value="sent" class="flex items-center gap-2">
+            <i class="pi pi-upload text-sm"></i>
+            <span>Sent Requests</span>
+            <p-badge [value]="sentTrades().length" severity="secondary" size="small" styleClass="ms-2"></p-badge>
+          </p-tab>
+        </p-tablist>
+
+        <p-tabpanels styleClass="p-0">
+          <!-- Received Tab -->
+          <p-tabpanel value="received">
+            @if (receivedTrades().length === 0) {
+            <div class="flex flex-col items-center justify-center py-20 text-center">
+              <div
+                class="w-20 h-20 bg-gray-100 dark:bg-surface-900 rounded-full flex items-center justify-center mb-6 border border-gray-200 dark:border-white/5">
+                <i class="pi pi-inbox text-3xl text-gray-400 dark:text-gray-700"></i>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No incoming trades</h3>
+              <p class="text-gray-500 dark:text-gray-400 max-w-xs text-sm">When someone proposes a trade to your wallet, it will appear
+                here instantly.</p>
+            </div>
+            } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              @for (trade of receivedTrades(); track trade.id) {
+              <ng-container
+                *ngTemplateOutlet="tradeCard; context: { $implicit: trade, type: 'incoming' }"></ng-container>
+              }
+            </div>
+            }
+          </p-tabpanel>
+
+          <!-- Sent Tab -->
+          <p-tabpanel value="sent">
+            @if (sentTrades().length === 0) {
+            <div class="flex flex-col items-center justify-center py-20 text-center">
+              <div
+                class="w-20 h-20 bg-surface-900 rounded-full flex items-center justify-center mb-6 border border-white/5">
+                <i class="pi pi-send text-3xl text-gray-700"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">No outgoing trades</h3>
+              <p class="text-gray-400 max-w-xs text-sm">Go to your inventory and select some NFTs to initialize a new
+                trade request.</p>
+              <p-button label="Explore Inventory" severity="secondary" [text]="true" class="mt-4"
+                [routerLink]="['/inventory']"></p-button>
+            </div>
+            } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              @for (trade of sentTrades(); track trade.id) {
+              <ng-container
+                *ngTemplateOutlet="tradeCard; context: { $implicit: trade, type: 'outgoing' }"></ng-container>
+              }
+            </div>
+            }
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+  </div>
+</div>
+
+<!-- Reusable Trade Card Template -->
+<ng-template #tradeCard let-trade let-type="type">
+  <div
+    class="bg-gray-100/50 dark:bg-surface-900/40 border border-gray-200 dark:border-white/5 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
+    <!-- Status Glow -->
+    <div class="absolute -top-10 -right-10 w-32 h-32 blur-3xl opacity-10 pointer-events-none"
+      [class.bg-emerald-500]="trade.status === 'accepted'" [class.bg-yellow-500]="trade.status === 'pending'"
+      [class.bg-red-500]="trade.status === 'rejected'">
+    </div>
+
+    <div class="flex justify-between items-start mb-5 relative z-10">
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+            {{ type === 'incoming' ? 'From' : 'To' }}
+          </span>
+          <span class="font-mono text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+            {{ formatAddress(type === 'incoming' ? trade.sender : trade.receiver) }}
+          </span>
+        </div>
+        <span class="text-[9px] text-gray-600 font-medium">Proposal ID: #{{ trade.id?.substring(0, 8) }}</span>
+      </div>
+      <p-tag [value]="trade.status.toUpperCase()" [severity]="getStatusSeverity(trade.status)"
+        styleClass="text-[9px] font-bold tracking-tighter px-2"></p-tag>
+    </div>
+
+    <!-- Assets Grid -->
+    <div class="grid grid-cols-1 gap-2 mb-5">
+      <!-- Sender Items -->
+      <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+        <div class="flex justify-between items-center mb-2 px-1">
+          <span class="text-[9px] font-bold text-gray-400 uppercase">Offered by {{ formatAddress(trade.sender) }}</span>
+          <span class="text-[9px] text-gray-500 font-mono">{{ trade.items?.length || 0 }} Items</span>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          @for (item of (trade.items || []); track item.tokenId; let i = $index) {
+          @if (i < 3) { <div class="w-10 h-10 bg-surface-800 rounded-lg border border-white/5 overflow-hidden p-0.5"
+            [pTooltip]="item.name">
+            <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-md" />
+        </div>
+        }
+        }
+        @if ((trade.items?.length || 0) > 3) {
+        <div class="w-10 h-10 bg-surface-800/50 rounded-lg flex items-center justify-center border border-white/5">
+          <span class="text-[8px] font-bold text-gray-500">+{{ (trade.items?.length || 0) - 3 }}</span>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Receiver Items (only if accepted) -->
+    @if (trade.status === 'accepted' && trade.receiverItems) {
+    <div class="bg-emerald-500/5 rounded-xl p-3 border border-emerald-500/10">
+      <div class="flex justify-between items-center mb-2 px-1">
+        <span class="text-[9px] font-bold text-emerald-400 uppercase">Received from {{ formatAddress(trade.receiver)
+          }}</span>
+        <span class="text-[9px] text-emerald-500/60 font-mono">{{ trade.receiverItems?.length || 0 }} Items</span>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        @for (item of (trade.receiverItems || []); track item.tokenId; let i = $index) {
+        @if (i < 3) { <div
+          class="w-10 h-10 bg-surface-800 rounded-lg border border-emerald-500/20 overflow-hidden p-0.5"
+          [pTooltip]="item.name">
+          <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-md" />
+      </div>
+      }
+      }
+      @if ((trade.receiverItems?.length || 0) > 3) {
+      <div class="w-10 h-10 bg-surface-800/50 rounded-lg flex items-center justify-center border border-emerald-500/20">
+        <span class="text-[8px] font-bold text-emerald-400/50">+{{ (trade.receiverItems?.length || 0) - 3 }}</span>
+      </div>
+      }
+    </div>
+  </div>
+  }
+  </div>
+
+  <!-- Actions -->
+  <div class="flex gap-2">
+    @if (trade.status === 'pending') {
+    <p-button label="Review / Edit" icon="pi pi-pencil" size="small" class="flex-1" styleClass="w-full p-button-sm"
+      [disabled]="!!trade.busyAddress" (onClick)="reviewOffer(trade)"></p-button>
+    } @else {
+    <p-button label="View Details" icon="pi pi-info-circle" [text]="true" severity="secondary" size="small"
+      class="flex-1" styleClass="w-full p-button-sm"></p-button>
+    }
+  </div>
+  </div>
+</ng-template>
+
+<!-- Review & Accept Dialog -->
+<p-dialog [(visible)]="isReviewVisible" [modal]="true" styleClass="trade-review-dialog" [draggable]="false"
+  [resizable]="false" [style]="{ width: '900px' }" [breakpoints]="{ '960px': '95vw' }"
+  [closable]="false" [dismissableMask]="!isBusy()">
+
+  <ng-template pTemplate="header">
+    @if (liveTrade(); as trade) {
+    <div class="flex flex-col gap-4 w-full pr-12">
+      <div class="flex justify-between items-end">
+        <div class="flex items-center gap-4">
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">Review Trade Proposal</h3>
+            <p class="text-[10px] text-gray-500 font-mono tracking-tighter uppercase">ID: {{ trade.id?.substring(0, 12)
+              }}</p>
+          </div>
+          
+          <!-- Presence Indicator -->
+          <div class="flex -space-x-2 overflow-hidden py-1">
+            @for (addr of presentUsers(); track addr) {
+              <div 
+                [pTooltip]="formatAddress(addr) + (addr.toLowerCase() === web3Service.currentAccount()?.toLowerCase() ? ' (You)' : ' (Counterpart)')"
+                tooltipPosition="bottom"
+                class="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-surface-950 bg-surface-800 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 cursor-help transition-transform hover:scale-110 hover:z-10 group relative"
+                [class.animate-pulse]="addr.toLowerCase() === liveTrade()?.busyAddress?.toLowerCase()">
+                {{ addr.substring(2, 4).toUpperCase() }}
+                @if (addr.toLowerCase() === liveTrade()?.busyAddress?.toLowerCase()) {
+                  <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+        <p-tag [value]="trade.status.toUpperCase()" [severity]="getStatusSeverity(trade.status)"
+          styleClass="text-[10px] font-bold px-3 py-1"></p-tag>
+      </div>
+
+      <!-- Header HUD: Status, Instructions & Steps -->
+      <div class="flex flex-col gap-4">
+        <!-- Local Action HUD (Shown to the user who is actually signing) -->
+        @if (currentStatus() || isMeBusy()) {
+        <p-message severity="info" variant="simple" styleClass="text-xs w-full bg-amber-500/10 border-amber-500/20 mb-2 py-3 animate-pulse">
+          <i class="pi pi-spin pi-spinner mr-2 text-amber-500"></i>
+          <strong>WALLET ACTION:</strong> {{ currentStatus() || 'Processing transaction in your wallet...' }}
+        </p-message>
+        } 
+        
+        <!-- Peer Action HUD (Shown to the user who is waiting) -->
+        @else if (liveTrade()?.busyAddress && !isMeBusy()) {
+        <p-message severity="warn" variant="simple" styleClass="text-xs w-full bg-surface-900/50 mb-2 py-3 border-amber-500/20">
+          <i class="pi pi-spin pi-spinner mr-2 text-amber-500"></i>
+          <strong>PEER BUSY:</strong> Your counterpart is currently signing or settling with their wallet. 
+          Please wait while the transaction completes.
+        </p-message>
+        }
+
+        @if ((trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0) {
+        <p-message severity="warn" variant="simple"
+          styleClass="text-xs w-full bg-orange-500/5 border-orange-500/10 mb-2">
+          <i class="pi pi-exclamation-triangle mr-2 text-orange-500"></i>
+          Assets pending. Both parties must select at least one NFT before terms can be accepted.
+        </p-message>
+        } @else if (!trade.senderAccepted || !trade.receiverAccepted || !trade.gasPayer) {
+        <p-message severity="secondary" variant="simple" styleClass="text-xs w-full bg-surface-900/50 mb-2">
+          <i class="pi pi-lock-open mr-2 text-yellow-500"></i>
+          Waiting for mutual agreement and gas payer selection to proceed with lockdown.
+        </p-message>
+        } @else if (isGasPayer() && !isLockedByPeer()) {
+        <p-message severity="warn" variant="simple"
+          styleClass="text-xs w-full bg-yellow-500/5 border-yellow-500/10 mb-2">
+          <i class="pi pi-spin pi-spinner mr-2 text-yellow-500"></i>
+          Agreement locked by systems. Waiting for peer to sign and lock terms locally.
+        </p-message>
+        } @else if (!isGasPayer() && !trade.lockedByNonPayer) {
+        <p-message severity="info" variant="simple" styleClass="text-xs w-full bg-blue-500/5 border-blue-500/10 mb-2">
+          <i class="pi pi-shield mr-2 text-blue-400"></i>
+          Handshake complete. You must proceed to <strong>Lock & Finalize</strong> your side of the contract.
+        </p-message>
+        } @else if (isLockedByPeer() && isGasPayer()) {
+        <p-message severity="success" variant="simple"
+          styleClass="text-xs w-full bg-emerald-500/5 border-emerald-500/10 mb-2">
+          <i class="pi pi-check-circle mr-2 text-emerald-500"></i>
+          Peer has locked the protocol. You are authorized to <strong>Finalize & Settle</strong> the exchange.
+        </p-message>
+        }
+
+        <!-- Full Transaction Lifecycle Steps in Header -->
+        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-4">
+          <div class="flex justify-between items-center px-1">
+            <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Transaction Lifecycle</h5>
+            <span class="text-[9px] font-mono text-emerald-500/70">DECENTRALIZED SETTLEMENT</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Step 1: Mutual Agreement -->
+            <div class="flex-1 flex flex-col gap-2">
+              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+                <div class="h-full bg-emerald-500 transition-all duration-500"
+                  [style.width]="(trade.senderAccepted && trade.receiverAccepted) ? '100%' : '50%'"></div>
+              </div>
+              <div class="flex items-center gap-1.5 px-0.5 text-center">
+                <i class="pi" [class.pi-check-circle]="trade.senderAccepted && trade.receiverAccepted"
+                  [class.pi-circle]="!trade.senderAccepted || !trade.receiverAccepted"
+                  [class.text-emerald-500]="trade.senderAccepted && trade.receiverAccepted"
+                  [class.text-gray-600]="!trade.senderAccepted || !trade.receiverAccepted" style="font-size: 10px"></i>
+                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">1. Agreements</span>
+              </div>
+            </div>
+
+            <div class="w-4 flex justify-center"><i class="pi pi-angle-right text-[10px] text-gray-700"></i></div>
+
+            <!-- Step 2: Fee Assignment -->
+            <div class="flex-1 flex flex-col gap-2">
+              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+                <div class="h-full bg-emerald-500 transition-all duration-500"
+                  [style.width]="trade.gasPayer ? '100%' : '0%'">
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 px-0.5">
+                <i class="pi" [class.pi-bolt]="trade.gasPayer" [class.pi-circle]="!trade.gasPayer"
+                  [class.text-emerald-500]="trade.gasPayer" [class.text-gray-600]="!trade.gasPayer"
+                  style="font-size: 10px"></i>
+                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">2. Fee Assignment</span>
+              </div>
+            </div>
+
+            <div class="w-4 flex justify-center"><i class="pi pi-angle-right text-[10px] text-gray-700"></i></div>
+
+            <!-- Step 3: Lockdown -->
+            <div class="flex-1 flex flex-col gap-2">
+              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+                <div class="h-full bg-emerald-500 transition-all duration-500"
+                  [style.width]="trade.lockedByNonPayer ? '100%' : '0%'"></div>
+              </div>
+              <div class="flex items-center gap-1.5 px-0.5">
+                <i class="pi" [class.pi-lock]="trade.lockedByNonPayer" [class.pi-circle]="!trade.lockedByNonPayer"
+                  [class.text-emerald-500]="trade.lockedByNonPayer" [class.text-gray-600]="!trade.lockedByNonPayer"
+                  style="font-size: 10px"></i>
+                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">3. Lockdown</span>
+              </div>
+            </div>
+
+            <div class="w-4 flex justify-center"><i class="pi pi-angle-right text-[10px] text-gray-700"></i></div>
+
+            <!-- Step 4: Settlement -->
+            <div class="flex-1 flex flex-col gap-2">
+              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+                <div class="h-full bg-emerald-500 transition-all duration-500"
+                  [style.width]="trade.status === 'accepted' ? '100%' : '0%'"></div>
+              </div>
+              <div class="flex items-center gap-1.5 px-0.5">
+                <i class="pi pi-verified" [class.text-emerald-500]="trade.status === 'accepted'"
+                  [class.text-gray-600]="trade.status !== 'accepted'" style="font-size: 10px"></i>
+                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">4. Settlement</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </ng-template>
+
+  @if (liveTrade(); as trade) {
+  <div class="flex flex-col gap-6 py-4">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Left: Peer's Offer -->
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+            <i class="pi pi-download text-emerald-500 text-xs"></i>
+          </div>
+          <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+            {{ userRole() === 'sender' ? 'Counterpart Offer' : 'Incoming Offer' }}
+          </h4>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+          <!-- Counterpart Search -->
+          <p-iconfield iconPosition="left">
+            <p-inputicon class="pi pi-search" />
+            <input 
+              type="text" 
+              pInputText 
+              placeholder="Search peer's offer..." 
+              class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
+              [value]="counterpartSearch()"
+              (input)="counterpartSearch.set($any($event.target).value)"
+            />
+          </p-iconfield>
+
+          <p-scrollpanel [style]="{ width: '100%', height: '300px' }">
+            <div class="flex flex-wrap gap-3 pr-4 pb-4">
+              @for (item of filteredCounterpartItems(); track item.tokenId) {
+                <div class="relative group w-20 h-20" 
+                     [pTooltip]="tooltipContent" 
+                     tooltipPosition="top">
+                  <ng-template #tooltipContent>
+                    <div class="flex flex-col gap-1 p-1">
+                      <span class="font-bold text-xs">{{ item.name }}</span>
+                      <span class="text-[10px] font-mono opacity-70">{{ item.contractAddress }}</span>
+                    </div>
+                  </ng-template>
+                  <div class="aspect-square bg-gray-200 dark:bg-surface-800 rounded-xl overflow-hidden border border-gray-300 dark:border-white/5 p-1">
+                    <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-lg" />
+                  </div>
+                </div>
+              }
+              @if (filteredCounterpartItems().length === 0) {
+                <div class="w-full flex flex-col items-center justify-center py-12 text-gray-600">
+                  <i class="pi pi-search text-2xl mb-2 opacity-20"></i>
+                  <span class="text-[10px] uppercase font-bold tracking-widest text-center">
+                    {{ counterpartSearch() ? 'No items match your search' : 'No items offered by peer' }}
+                  </span>
+                </div>
+              }
+            </div>
+          </p-scrollpanel>
+          <p class="text-[10px] text-gray-500 mt-4 text-center">
+            Items from {{ formatAddress(userRole() === 'sender' ? trade.receiver : trade.sender) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: What you give -->
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+            <i class="pi pi-upload text-blue-500 text-xs"></i>
+          </div>
+          <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Your Selection</h4>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+          @if (receiverInventory().length > 0) {
+          <!-- Your Inventory Search -->
+          <p-iconfield iconPosition="left">
+            <p-inputicon class="pi pi-search" />
+            <input 
+              type="text" 
+              pInputText 
+              placeholder="Search your inventory..." 
+              class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
+              [value]="receiverSearch()"
+              (input)="receiverSearch.set($any($event.target).value)"
+            />
+          </p-iconfield>
+          }
+
+          <p-scrollpanel [style]="{ width: '100%', height: '300px' }">
+            <div class="flex flex-col pr-4 pb-4">
+              @if ((receiverInventory().length || 0) === 0) {
+                <div class="flex-grow flex items-center justify-center text-center py-12">
+                  <p class="text-[10px] text-gray-500 italic uppercase font-bold tracking-widest">Loading your inventory...</p>
+                </div>
+              } @else {
+                <div class="flex flex-wrap gap-3">
+                  @for (item of filteredReceiverInventory(); track item.tokenId) {
+                    <div class="relative cursor-pointer transition-all hover:scale-105 w-20 h-20"
+                      [class.opacity-50]="isBusy()"
+                      [class.cursor-not-allowed]="isBusy()"
+                      [pTooltip]="tooltipContentSelf" 
+                      tooltipPosition="top"
+                      (click)="!isBusy() && toggleReceiverSelection(item.tokenId)">
+                      <ng-template #tooltipContentSelf>
+                        <div class="flex flex-col gap-1 p-1">
+                          <span class="font-bold text-xs">{{ item.name }}</span>
+                          <span class="text-[10px] font-mono opacity-70">{{ item.contractAddress }}</span>
+                        </div>
+                      </ng-template>
+                      <div class="aspect-square rounded-xl overflow-hidden border p-1 transition-colors"
+                        [class.bg-emerald-500/20]="selectedReceiverIds().has(item.tokenId)"
+                        [class.border-emerald-500]="selectedReceiverIds().has(item.tokenId)"
+                        [class.bg-gray-200]="!selectedReceiverIds().has(item.tokenId)"
+                        [class.dark:bg-surface-800]="!selectedReceiverIds().has(item.tokenId)"
+                        [class.border-gray-300]="!selectedReceiverIds().has(item.tokenId)"
+                        [class.dark:border-white/5]="!selectedReceiverIds().has(item.tokenId)">
+                        <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-lg" />
+                      </div>
+                      @if (selectedReceiverIds().has(item.tokenId)) {
+                        <div
+                          class="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-lg border-2 border-surface-950">
+                          <i class="pi pi-check text-[8px] font-bold"></i>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  @if (filteredReceiverInventory().length === 0 && receiverInventory().length > 0) {
+                    <div class="w-full flex flex-col items-center justify-center py-12 text-gray-600">
+                      <i class="pi pi-search text-2xl mb-2 opacity-20"></i>
+                      <span class="text-[10px] uppercase font-bold tracking-widest text-center">No items match your search</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </p-scrollpanel>
+          <div class="pt-4 border-t border-gray-200 dark:border-white/5 flex justify-between items-center">
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Selected Items</span>
+            <p-badge [value]="selectedReceiverIds().size" severity="success"></p-badge>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Handshake Controls -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <!-- Gas Payer Selection -->
+      <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+        <h5 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Network Fees</h5>
+        <p-button
+          [label]="trade.gasPayer === userRole() ? 'You are paying gas' : (trade.gasPayer ? 'Peer is paying gas' : 'I will pay the gas')"
+          [icon]="trade.gasPayer ? 'pi pi-check-circle' : 'pi pi-bolt'"
+          [severity]="trade.gasPayer === userRole() ? 'success' : (trade.gasPayer ? 'secondary' : 'warn')"
+          [variant]="trade.gasPayer === userRole() ? 'outlined' : 'text'"
+          [disabled]="isBusy() || (trade.gasPayer && trade.gasPayer !== userRole())" styleClass="w-full" (onClick)="toggleGasPayer()">
+        </p-button>
+      </div>
+
+      <!-- Acceptance Handshake -->
+      <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+        <h5 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Confirmation</h5>
+        <div class="flex gap-2">
+          <p-button
+            [label]="(userRole() === 'sender' ? trade.senderAccepted : trade.receiverAccepted) ? 'Accepted' : 'Accept Terms'"
+            [icon]="(userRole() === 'sender' ? trade.senderAccepted : trade.receiverAccepted) ? 'pi pi-check' : 'pi pi-circle'"
+            [severity]="(userRole() === 'sender' ? trade.senderAccepted : trade.receiverAccepted) ? 'success' : 'secondary'"
+            class="flex-1" [disabled]="isBusy() || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
+            (onClick)="toggleLocalAcceptance()">
+          </p-button>
+          <div class="flex flex-col justify-center px-3 border-l border-gray-200 dark:border-white/5">
+            <span class="text-[8px] uppercase text-gray-600 font-bold">Counterpart</span>
+            <p-tag
+              [severity]="(userRole() === 'sender' ? trade.receiverAccepted : trade.senderAccepted) ? 'success' : 'warn'"
+              [value]="(userRole() === 'sender' ? trade.receiverAccepted : trade.senderAccepted) ? 'READY' : 'WAITING'"
+              styleClass="text-[8px] mt-1">
+            </p-tag>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  }
+
+  <ng-template pTemplate="footer">
+    @if (liveTrade(); as trade) {
+    <div class="flex justify-between w-full pt-4 border-t border-gray-200 dark:border-white/5">
+      <div class="flex gap-2 items-center">
+        <p-button label="Reject Proposal" icon="pi pi-times" severity="danger" [text]="true"
+          (onClick)="rejectOffer(trade)" styleClass="text-xs" [disabled]="isBusy()">
+        </p-button>
+        
+        @if (enableHardRevoke && trade.seaportOrder && !isGasPayer()) {
+          <p-button label="Hard Revoke (On-Chain)" icon="pi pi-shield" severity="danger" [outlined]="true"
+            [loading]="isRevoking()" (onClick)="hardRevoke(trade)" styleClass="text-[10px] h-8" [disabled]="isBusy()">
+          </p-button>
+        }
+      </div>
+
+      <div class="flex gap-2">
+        <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="isReviewVisible.set(false)" [disabled]="isBusy()">
+        </p-button>
+        <p-button
+          [label]="isGasPayer() ? 'Finalize & Settle' : (trade.lockedByNonPayer ? 'Terms Locked' : 'Lock & Finalize')"
+          [icon]="isGasPayer() ? 'pi pi-lock' : (trade.lockedByNonPayer ? 'pi pi-check' : 'pi pi-lock')"
+          severity="success" [loading]="isSubmitting()" 
+          [disabled]="isBusy() || !trade.senderAccepted || !trade.receiverAccepted || !trade.gasPayer || (isGasPayer() && !isLockedByPeer()) || (!isGasPayer() && trade.lockedByNonPayer) || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
+          (onClick)="confirmAcceptance()">
+        </p-button>
+      </div>
+    </div>
+    }
+  </ng-template>
+</p-dialog>

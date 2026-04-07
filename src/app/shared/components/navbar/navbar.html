@@ -1,0 +1,61 @@
+<nav class="w-full flex justify-center sticky top-0 z-50 p-2">
+  <div class="w-full max-w-7xl mx-auto">
+    <p-menubar [model]="items()">
+      
+      <!-- Start Template: Logo -->
+      <ng-template #start>
+        <div class="flex items-center gap-3 mr-6 cursor-pointer">
+          <svg class="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M11.944 17.97L4.58 13.62 11.943 24l7.37-10.38-7.372 4.35h.003zM12.056 0L4.69 12.223l7.365 4.354 7.365-4.35L12.056 0z"/>
+          </svg>
+          <span class="text-xl font-bold">
+            EthTrade
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- End Template: Search + Button -->
+      <ng-template #end>
+        <div class="flex items-center gap-4">
+          <!-- Búsqueda nativa -->
+          <div class="hidden lg:block mt-1">
+            <p-iconField iconPosition="left">
+              <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+              <input 
+                pInputText 
+                type="text" 
+                placeholder="Search NFTs..." 
+                (input)="nftService.searchTerm.set($any($event.target).value)" />
+            </p-iconField>
+          </div>
+          
+          <!-- Theme Toggle -->
+          <p-button 
+            [icon]="themeService.isDarkMode() ? 'pi pi-sun' : 'pi pi-moon'" 
+            [severity]="'secondary'" 
+            [text]="true"
+            [rounded]="true"
+            (onClick)="themeService.toggleTheme()"
+            pTooltip="Toggle Theme">
+          </p-button>
+
+          @if (!web3Service.currentAccount()) {
+            <p-button 
+              label="Connect Wallet" 
+              icon="pi pi-wallet"
+              (onClick)="connectWallet()">
+            </p-button>
+          } @else {
+            <p-button 
+              [label]="web3Service.currentAccount()!.slice(0, 6) + '...' + web3Service.currentAccount()!.slice(-4)" 
+              icon="pi pi-check-circle"
+              severity="success"
+              variant="outlined"
+              (onClick)="connectWallet()">
+            </p-button>
+          }
+        </div>
+      </ng-template>
+    </p-menubar>
+  </div>
+</nav>
