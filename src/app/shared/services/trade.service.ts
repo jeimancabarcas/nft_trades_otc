@@ -9,7 +9,7 @@ export interface TradeRequest {
   receiver: string;
   items?: NftItem[];
   receiverItems?: NftItem[];
-  status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'completed';
   createdAt: any;
   // Mutual agreement flags
   senderAccepted?: boolean;
@@ -166,7 +166,7 @@ export class TradeService {
   async acceptTrade(tradeId: string, receiverItems: NftItem[]): Promise<void> {
     const tradeRef = ref(this.db, `trades/${tradeId}`);
     await update(tradeRef, {
-      status: 'accepted',
+      status: 'completed',
       receiverItems
     });
   }

@@ -80,6 +80,7 @@ export class TradeList {
     const trade = this.liveTrade();
     return this.isSubmitting() || this.isRevoking() || (!!trade && !!trade.busyAddress);
   });
+  isReadOnly = computed(() => this.liveTrade()?.status === 'completed');
   isMeBusy = computed(() => {
     const busy = this.liveTrade()?.busyAddress;
     const me = this.web3Service.currentAccount()?.toLowerCase();
@@ -194,7 +195,8 @@ export class TradeList {
   getStatusSeverity(status: string) {
     switch (status) {
       case 'pending': return 'warn';
-      case 'accepted': return 'success';
+      case 'accepted': 
+      case 'completed': return 'success';
       case 'rejected': return 'danger';
       case 'cancelled': return 'secondary';
       default: return 'info';
@@ -230,7 +232,7 @@ export class TradeList {
   async toggleLocalAcceptance() {
     const trade = this.liveTrade();
     const role = this.userRole();
-    if (!trade || !trade.id || !role) return;
+    if (this.isReadOnly() || !trade || !trade.id || !role || this.isBusy()) return;
 
     const currentAcceptance = role === 'sender' ? trade.senderAccepted : trade.receiverAccepted;
     
@@ -250,7 +252,7 @@ export class TradeList {
   async toggleGasPayer() {
     const trade = this.liveTrade();
     const role = this.userRole();
-    if (!trade || !trade.id || !role) return;
+    if (this.isReadOnly() || !trade || !trade.id || !role || this.isBusy()) return;
 
     // Only allow claiming if unclaimed, or untoggling if we are the current payer
     if (trade.gasPayer && trade.gasPayer !== role) return;
@@ -260,6 +262,7 @@ export class TradeList {
   }
 
   toggleReceiverSelection(tokenId: string) {
+    if (this.isReadOnly() || this.isBusy()) return;
     const current = new Set(this.selectedReceiverIds());
     if (current.has(tokenId)) {
       current.delete(tokenId);

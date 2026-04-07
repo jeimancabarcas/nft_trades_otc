@@ -94,7 +94,8 @@
     class="bg-gray-100/50 dark:bg-surface-900/40 border border-gray-200 dark:border-white/5 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
     <!-- Status Glow -->
     <div class="absolute -top-10 -right-10 w-32 h-32 blur-3xl opacity-10 pointer-events-none"
-      [class.bg-emerald-500]="trade.status === 'accepted'" [class.bg-yellow-500]="trade.status === 'pending'"
+      [class.bg-emerald-500]="trade.status === 'accepted' || trade.status === 'completed'" 
+      [class.bg-yellow-500]="trade.status === 'pending'"
       [class.bg-red-500]="trade.status === 'rejected'">
     </div>
 
@@ -138,8 +139,8 @@
       </div>
     </div>
 
-    <!-- Receiver Items (only if accepted) -->
-    @if (trade.status === 'accepted' && trade.receiverItems) {
+    <!-- Receiver Items (only if accepted or completed) -->
+    @if ((trade.status === 'accepted' || trade.status === 'completed') && trade.receiverItems) {
     <div class="bg-emerald-500/5 rounded-xl p-3 border border-emerald-500/10">
       <div class="flex justify-between items-center mb-2 px-1">
         <span class="text-[9px] font-bold text-emerald-400 uppercase">Received from {{ formatAddress(trade.receiver)
@@ -369,6 +370,7 @@
               class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
               [value]="counterpartSearch()"
               (input)="counterpartSearch.set($any($event.target).value)"
+              [disabled]="isReadOnly()"
             />
           </p-iconfield>
 
@@ -426,6 +428,7 @@
               class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
               [value]="receiverSearch()"
               (input)="receiverSearch.set($any($event.target).value)"
+              [disabled]="isReadOnly()"
             />
           </p-iconfield>
           }
@@ -440,11 +443,11 @@
                 <div class="flex flex-wrap gap-3">
                   @for (item of filteredReceiverInventory(); track item.tokenId) {
                     <div class="relative cursor-pointer transition-all hover:scale-105 w-20 h-20"
-                      [class.opacity-50]="isBusy()"
-                      [class.cursor-not-allowed]="isBusy()"
+                      [class.opacity-50]="isBusy() || isReadOnly()"
+                      [class.cursor-not-allowed]="isBusy() || isReadOnly()"
                       [pTooltip]="tooltipContentSelf" 
                       tooltipPosition="top"
-                      (click)="!isBusy() && toggleReceiverSelection(item.tokenId)">
+                      (click)="toggleReceiverSelection(item.tokenId)">
                       <ng-template #tooltipContentSelf>
                         <div class="flex flex-col gap-1 p-1">
                           <span class="font-bold text-xs">{{ item.name }}</span>
@@ -530,29 +533,36 @@
   <ng-template pTemplate="footer">
     @if (liveTrade(); as trade) {
     <div class="flex justify-between w-full pt-4 border-t border-gray-200 dark:border-white/5">
-      <div class="flex gap-2 items-center">
-        <p-button label="Reject Proposal" icon="pi pi-times" severity="danger" [text]="true"
-          (onClick)="rejectOffer(trade)" styleClass="text-xs" [disabled]="isBusy()">
-        </p-button>
-        
-        @if (enableHardRevoke && trade.seaportOrder && !isGasPayer()) {
-          <p-button label="Hard Revoke (On-Chain)" icon="pi pi-shield" severity="danger" [outlined]="true"
-            [loading]="isRevoking()" (onClick)="hardRevoke(trade)" styleClass="text-[10px] h-8" [disabled]="isBusy()">
+      @if (isReadOnly()) {
+        <div class="flex items-center gap-3 bg-emerald-500/10 px-6 py-2 rounded-2xl border border-emerald-500/20 w-full justify-center">
+          <i class="pi pi-check-circle text-emerald-500 text-lg"></i>
+          <span class="text-sm font-bold text-emerald-500 uppercase tracking-widest">Trade Finalized & Settled</span>
+        </div>
+      } @else {
+        <div class="flex gap-2 items-center">
+          <p-button label="Reject Proposal" icon="pi pi-times" severity="danger" [text]="true"
+            (onClick)="rejectOffer(trade)" styleClass="text-xs" [disabled]="isBusy()">
           </p-button>
-        }
-      </div>
+          
+          @if (enableHardRevoke && trade.seaportOrder && !isGasPayer()) {
+            <p-button label="Hard Revoke (On-Chain)" icon="pi pi-shield" severity="danger" [outlined]="true"
+              [loading]="isRevoking()" (onClick)="hardRevoke(trade)" styleClass="text-[10px] h-8" [disabled]="isBusy()">
+            </p-button>
+          }
+        </div>
 
-      <div class="flex gap-2">
-        <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="isReviewVisible.set(false)" [disabled]="isBusy()">
-        </p-button>
-        <p-button
-          [label]="isGasPayer() ? 'Finalize & Settle' : (trade.lockedByNonPayer ? 'Terms Locked' : 'Lock & Finalize')"
-          [icon]="isGasPayer() ? 'pi pi-lock' : (trade.lockedByNonPayer ? 'pi pi-check' : 'pi pi-lock')"
-          severity="success" [loading]="isSubmitting()" 
-          [disabled]="isBusy() || !trade.senderAccepted || !trade.receiverAccepted || !trade.gasPayer || (isGasPayer() && !isLockedByPeer()) || (!isGasPayer() && trade.lockedByNonPayer) || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
-          (onClick)="confirmAcceptance()">
-        </p-button>
-      </div>
+        <div class="flex gap-2">
+          <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="isReviewVisible.set(false)" [disabled]="isBusy()">
+          </p-button>
+          <p-button
+            [label]="isGasPayer() ? 'Finalize & Settle' : (trade.lockedByNonPayer ? 'Terms Locked' : 'Lock & Finalize')"
+            [icon]="isGasPayer() ? 'pi pi-lock' : (trade.lockedByNonPayer ? 'pi pi-check' : 'pi pi-lock')"
+            severity="success" [loading]="isSubmitting()" 
+            [disabled]="isBusy() || !trade.senderAccepted || !trade.receiverAccepted || !trade.gasPayer || (isGasPayer() && !isLockedByPeer()) || (!isGasPayer() && trade.lockedByNonPayer) || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
+            (onClick)="confirmAcceptance()">
+          </p-button>
+        </div>
+      }
     </div>
     }
   </ng-template>
