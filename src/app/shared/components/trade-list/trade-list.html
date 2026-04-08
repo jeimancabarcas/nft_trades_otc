@@ -1,29 +1,30 @@
 <p-toast></p-toast>
 
-<div class="py-12 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <div class="flex flex-col gap-8 w-full">
 
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Trade Center</h2>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage and track your NFT exchange proposals in real-time</p>
+        <h2 class="text-3xl font-bold tracking-tight">Trade Center</h2>
+        <p class="text-gray-500 text-sm mt-1">Manage and track your NFT exchange proposals in
+          real-time</p>
       </div>
 
-      <div class="flex items-center gap-3 bg-gray-100 dark:bg-surface-900/50 p-1 rounded-xl border border-gray-200 dark:border-surface-800">
+      <div class="flex items-center gap-3 bg-gray-100 p-1 rounded-xl border border-gray-200">
         <p-button label="Inventory" icon="pi pi-th-large" [variant]="'text'" size="small" [routerLink]="['/inventory']">
         </p-button>
-        <div class="w-px h-4 bg-gray-300 dark:bg-surface-700 mx-1"></div>
+        <div class="w-px h-4 bg-gray-300 mx-1"></div>
         <div class="px-3 py-1.5 flex items-center gap-2">
           <i class="pi pi-arrow-right-arrow-left text-emerald-500"></i>
-          <span class="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">Active Trades</span>
+          <span class="text-xs font-bold text-gray-700 uppercase tracking-widest">Active Trades</span>
         </div>
       </div>
     </div>
 
     <!-- Main Tabs Container -->
-    <div class="card bg-gray-50/80 dark:bg-surface-950/40 backdrop-blur-md border border-gray-200 dark:border-white/5 rounded-3xl p-6 shadow-2xl">
+    <div class="card bg-gray-50/80 backdrop-blur-md border border-gray-200 rounded-3xl p-6 shadow-2xl">
       <p-tabs value="received">
-        <p-tablist styleClass="!border-b border-gray-200 dark:!border-white/5 mb-6">
+        <p-tablist styleClass="!border-b border-gray-200 mb-6">
           <p-tab value="received" class="flex items-center gap-2">
             <i class="pi pi-download text-sm"></i>
             <span>Received Requests</span>
@@ -42,11 +43,11 @@
             @if (receivedTrades().length === 0) {
             <div class="flex flex-col items-center justify-center py-20 text-center">
               <div
-                class="w-20 h-20 bg-gray-100 dark:bg-surface-900 rounded-full flex items-center justify-center mb-6 border border-gray-200 dark:border-white/5">
-                <i class="pi pi-inbox text-3xl text-gray-400 dark:text-gray-700"></i>
+                class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 border border-gray-200">
+                <i class="pi pi-inbox text-3xl text-gray-400"></i>
               </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No incoming trades</h3>
-              <p class="text-gray-500 dark:text-gray-400 max-w-xs text-sm">When someone proposes a trade to your wallet, it will appear
+              <h3 class="text-xl font-bold text-gray-900 mb-2">No incoming trades</h3>
+              <p class="text-gray-500 max-w-xs text-sm">When someone proposes a trade to your wallet, it will appear
                 here instantly.</p>
             </div>
             } @else {
@@ -91,13 +92,13 @@
 <!-- Reusable Trade Card Template -->
 <ng-template #tradeCard let-trade let-type="type">
   <div
-    class="bg-gray-100/50 dark:bg-surface-900/40 border border-gray-200 dark:border-white/5 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
+    class="bg-gray-100/50 border border-gray-200 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
     <!-- Status Glow -->
     <div class="absolute -top-10 -right-10 w-32 h-32 blur-3xl opacity-10 pointer-events-none"
-      [class.bg-emerald-500]="trade.status === 'accepted' || trade.status === 'completed'" 
-      [class.bg-yellow-500]="trade.status === 'pending'"
-      [class.bg-red-500]="trade.status === 'rejected'">
+      [class.bg-emerald-500]="trade.status === 'accepted' || trade.status === 'completed'"
+      [class.bg-yellow-500]="trade.status === 'pending'" [class.bg-red-500]="trade.status === 'rejected'">
     </div>
+
 
     <div class="flex justify-between items-start mb-5 relative z-10">
       <div class="flex flex-col gap-1">
@@ -184,58 +185,68 @@
 
 <!-- Review & Accept Dialog -->
 <p-dialog [(visible)]="isReviewVisible" [modal]="true" styleClass="trade-review-dialog" [draggable]="false"
-  [resizable]="false" [style]="{ width: '900px' }" [breakpoints]="{ '960px': '95vw' }"
-  [closable]="false" [dismissableMask]="!isBusy()">
+  [resizable]="false" [style]="{ width: '900px' }" [breakpoints]="{ '960px': '95vw' }" [closable]="false"
+  [closeOnEscape]="true">
 
   <ng-template pTemplate="header">
     @if (liveTrade(); as trade) {
-    <div class="flex flex-col gap-4 w-full pr-12">
+    <div class="flex flex-col gap-4 w-full">
       <div class="flex justify-between items-end">
         <div class="flex items-center gap-4">
           <div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">Review Trade Proposal</h3>
+            <h3 class="text-xl font-bold text-gray-900 mb-1">Review Trade Proposal</h3>
             <p class="text-[10px] text-gray-500 font-mono tracking-tighter uppercase">ID: {{ trade.id?.substring(0, 12)
               }}</p>
           </div>
-          
+
           <!-- Presence Indicator -->
           <div class="flex -space-x-2 overflow-hidden py-1">
             @for (addr of presentUsers(); track addr) {
-              <div 
-                [pTooltip]="formatAddress(addr) + (addr.toLowerCase() === web3Service.currentAccount()?.toLowerCase() ? ' (You)' : ' (Counterpart)')"
-                tooltipPosition="bottom"
-                class="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-surface-950 bg-surface-800 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 cursor-help transition-transform hover:scale-110 hover:z-10 group relative"
-                [class.animate-pulse]="addr.toLowerCase() === liveTrade()?.busyAddress?.toLowerCase()">
-                {{ addr.substring(2, 4).toUpperCase() }}
-                @if (addr.toLowerCase() === liveTrade()?.busyAddress?.toLowerCase()) {
-                  <span class="absolute -top-1 -right-1 flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                  </span>
-                }
-              </div>
+            <div
+              [pTooltip]="formatAddress(addr) + (addr.toLowerCase() === web3Service.currentAccount()?.toLowerCase() ? ' (You)' : ' (Counterpart)')"
+              tooltipPosition="bottom"
+              class="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-surface-950 bg-surface-800 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 cursor-help transition-transform hover:scale-110 hover:z-10 group relative"
+              [class.animate-pulse]="addr.toLowerCase() === liveTrade()?.busyAddress?.toLowerCase()">
+              {{ addr.substring(2, 4).toUpperCase() }}
+              @if (addr.toLowerCase() === liveTrade()?.busyAddress?.toLowerCase()) {
+              <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                <span
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              }
+            </div>
             }
           </div>
         </div>
-        <p-tag [value]="trade.status.toUpperCase()" [severity]="getStatusSeverity(trade.status)"
-          styleClass="text-[10px] font-bold px-3 py-1"></p-tag>
+        <div>
+
+          <p-tag [value]="trade.status.toUpperCase()" [severity]="getStatusSeverity(trade.status)"
+            pClass="text-[10px] font-bold px-3 py-1"></p-tag>
+
+          <p-button label="Close" severity="secondary" [text]="true" (onClick)="isReviewVisible.set(false)"
+            [disabled]="isBusy()">
+          </p-button>
+        </div>
       </div>
 
       <!-- Header HUD: Status, Instructions & Steps -->
       <div class="flex flex-col gap-4">
         <!-- Local Action HUD (Shown to the user who is actually signing) -->
         @if (currentStatus() || isMeBusy()) {
-        <p-message severity="info" variant="simple" styleClass="text-xs w-full bg-amber-500/10 border-amber-500/20 mb-2 py-3 animate-pulse">
+        <p-message severity="info" variant="simple"
+          styleClass="text-xs w-full bg-amber-500/10 border-amber-500/20 mb-2 py-3 animate-pulse">
           <i class="pi pi-spin pi-spinner mr-2 text-amber-500"></i>
           <strong>WALLET ACTION:</strong> {{ currentStatus() || 'Processing transaction in your wallet...' }}
         </p-message>
-        } 
-        
+        }
+
         <!-- Peer Action HUD (Shown to the user who is waiting) -->
         @else if (liveTrade()?.busyAddress && !isMeBusy()) {
-        <p-message severity="warn" variant="simple" styleClass="text-xs w-full bg-surface-900/50 mb-2 py-3 border-amber-500/20">
+        <p-message severity="warn" variant="simple"
+          styleClass="text-xs w-full bg-surface-900/50 mb-2 py-3 border-amber-500/20">
           <i class="pi pi-spin pi-spinner mr-2 text-amber-500"></i>
-          <strong>PEER BUSY:</strong> Your counterpart is currently signing or settling with their wallet. 
+          <strong>PEER BUSY:</strong> Your counterpart is currently signing or settling with their wallet.
           Please wait while the transaction completes.
         </p-message>
         }
@@ -271,16 +282,16 @@
         }
 
         <!-- Full Transaction Lifecycle Steps in Header -->
-        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-4">
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col gap-4">
           <div class="flex justify-between items-center px-1">
             <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Transaction Lifecycle</h5>
-            <span class="text-[9px] font-mono text-emerald-500/70">DECENTRALIZED SETTLEMENT</span>
+            <span class="text-[9px] font-mono text-gray-500/70">DECENTRALIZED SETTLEMENT</span>
           </div>
 
           <div class="flex items-center gap-2">
             <!-- Step 1: Mutual Agreement -->
             <div class="flex-1 flex flex-col gap-2">
-              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+              <div class="h-1 rounded-full bg-gray-300 overflow-hidden">
                 <div class="h-full bg-emerald-500 transition-all duration-500"
                   [style.width]="(trade.senderAccepted && trade.receiverAccepted) ? '100%' : '50%'"></div>
               </div>
@@ -297,7 +308,7 @@
 
             <!-- Step 2: Fee Assignment -->
             <div class="flex-1 flex flex-col gap-2">
-              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+              <div class="h-1 rounded-full bg-gray-300 overflow-hidden">
                 <div class="h-full bg-emerald-500 transition-all duration-500"
                   [style.width]="trade.gasPayer ? '100%' : '0%'">
                 </div>
@@ -314,7 +325,7 @@
 
             <!-- Step 3: Settlement -->
             <div class="flex-1 flex flex-col gap-2">
-              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+              <div class="h-1 rounded-full bg-gray-300 overflow-hidden">
                 <div class="h-full bg-emerald-500 transition-all duration-500"
                   [style.width]="(trade.status === 'accepted' || trade.status === 'completed') ? '100%' : '0%'"></div>
               </div>
@@ -332,7 +343,7 @@
 
             <!-- Step 4: Lockdown -->
             <div class="flex-1 flex flex-col gap-2">
-              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+              <div class="h-1 rounded-full bg-gray-300 overflow-hidden">
                 <div class="h-full bg-emerald-500 transition-all duration-500"
                   [style.width]="trade.lockedByNonPayer ? '100%' : '0%'"></div>
               </div>
@@ -360,56 +371,48 @@
           <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
             <i class="pi pi-download text-emerald-500 text-xs"></i>
           </div>
-          <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-            @if (isReadOnly()) { Counterpart Assets } 
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">
+            @if (isReadOnly()) { Counterpart Assets }
             @else { {{ userRole() === 'sender' ? 'Counterpart Offer' : 'Incoming Offer' }} }
           </h4>
           @if (isPeerAcceptanceComplete() && !isReadOnly()) {
-            <p-tag value="AGREED" severity="success" styleClass="text-[8px] font-bold px-1.5 py-0.5 ml-auto"></p-tag>
+          <p-tag value="AGREED" severity="success" styleClass="text-[8px] font-bold px-1.5 py-0.5 ml-auto"></p-tag>
           }
         </div>
 
-        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3 transition-all duration-500"
-             [class.!bg-emerald-500/10]="isPeerAcceptanceComplete() && !isReadOnly()"
-             [class.!border-emerald-500/20]="isPeerAcceptanceComplete() && !isReadOnly()">
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col gap-3 transition-all duration-500"
+          [class.!bg-emerald-500/10]="isPeerAcceptanceComplete() && !isReadOnly()"
+          [class.!border-emerald-500/20]="isPeerAcceptanceComplete() && !isReadOnly()">
           <!-- Counterpart Search -->
           <p-iconfield iconPosition="left">
             <p-inputicon class="pi pi-search" />
-            <input 
-              type="text" 
-              pInputText 
-              placeholder="Search peer's offer..." 
-              class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
-              [value]="counterpartSearch()"
-              (input)="counterpartSearch.set($any($event.target).value)"
-              [disabled]="isReadOnly()"
-            />
+            <input type="text" pInputText placeholder="Search peer's offer..."
+              class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]" [value]="counterpartSearch()"
+              (input)="counterpartSearch.set($any($event.target).value)" [disabled]="isReadOnly()" />
           </p-iconfield>
 
-          <p-scrollpanel [style]="{ width: '100%', height: '300px' }">
+          <p-scrollpanel>
             <div class="flex flex-wrap gap-3 pr-4 pb-4">
               @for (item of filteredCounterpartItems(); track item.tokenId) {
-                <div class="relative group w-20 h-20" 
-                     [pTooltip]="tooltipContent" 
-                     tooltipPosition="top">
-                  <ng-template #tooltipContent>
-                    <div class="flex flex-col gap-1 p-1">
-                      <span class="font-bold text-xs">{{ item.name }}</span>
-                      <span class="text-[10px] font-mono opacity-70">{{ item.contractAddress }}</span>
-                    </div>
-                  </ng-template>
-                  <div class="aspect-square bg-gray-200 dark:bg-surface-800 rounded-xl overflow-hidden border border-gray-300 dark:border-white/5 p-1">
-                    <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-lg" />
+              <div class="relative group w-20 h-20" [pTooltip]="tooltipContent" tooltipPosition="top">
+                <ng-template #tooltipContent>
+                  <div class="flex flex-col gap-1 p-1">
+                    <span class="font-bold text-xs">{{ item.name }}</span>
+                    <span class="text-[10px] font-mono opacity-70">{{ item.contractAddress }}</span>
                   </div>
+                </ng-template>
+                <div class="aspect-square bg-gray-200 rounded-xl overflow-hidden border border-gray-300 p-1">
+                  <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-lg" />
                 </div>
+              </div>
               }
               @if (filteredCounterpartItems().length === 0) {
-                <div class="w-full flex flex-col items-center justify-center py-12 text-gray-600">
-                  <i class="pi pi-search text-2xl mb-2 opacity-20"></i>
-                  <span class="text-[10px] uppercase font-bold tracking-widest text-center">
-                    {{ counterpartSearch() ? 'No items match your search' : 'No items offered by peer' }}
-                  </span>
-                </div>
+              <div class="w-full flex flex-col items-center justify-center py-4 text-gray-600">
+                <i class="pi pi-search text-2xl mb-2 opacity-20"></i>
+                <span class="text-[10px] uppercase font-bold tracking-widest text-center">
+                  {{ counterpartSearch() ? 'No items match your search' : 'No items offered by peer' }}
+                </span>
+              </div>
               }
             </div>
           </p-scrollpanel>
@@ -425,101 +428,93 @@
           <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
             <i class="pi pi-upload text-blue-500 text-xs"></i>
           </div>
-          <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">
             {{ isReadOnly() ? 'Items You Traded' : 'Your Selection' }}
           </h4>
           @if (isMyAcceptanceComplete() && !isReadOnly()) {
-            <p-tag value="AGREED" severity="success" styleClass="text-[8px] font-bold px-1.5 py-0.5 ml-auto"></p-tag>
+          <p-tag value="AGREED" severity="success" styleClass="text-[8px] font-bold px-1.5 py-0.5 ml-auto"></p-tag>
           }
         </div>
 
-        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3 transition-all duration-500"
-             [class.!bg-emerald-500/10]="isMyAcceptanceComplete() && !isReadOnly()"
-             [class.!border-emerald-500/20]="isMyAcceptanceComplete() && !isReadOnly()">
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col gap-3 transition-all duration-500"
+          [class.!bg-emerald-500/10]="isMyAcceptanceComplete() && !isReadOnly()"
+          [class.!border-emerald-500/20]="isMyAcceptanceComplete() && !isReadOnly()">
           @if (!isReadOnly() && selectedItemsList().length > 0) {
-            <!-- Selected Assets Tray (Above Search) -->
-            <div class="flex flex-col gap-2 p-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
-              <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest px-1">Selected Assets</span>
-              <p-scrollpanel [style]="{ width: '100%', height: '85px' }">
-                <div class="flex flex-wrap gap-2 pb-2">
-                  @for (item of selectedItemsList(); track item.tokenId) {
-                    <div class="relative group cursor-pointer" (click)="toggleReceiverSelection(item.tokenId)">
-                      <div class="w-14 h-14 rounded-lg overflow-hidden border border-emerald-500/50 p-0.5 bg-emerald-500/10 transition-all hover:border-red-500 group-hover:opacity-80">
-                        <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-md" />
-                      </div>
-                      <div class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                        <i class="pi pi-times text-[7px] font-bold"></i>
-                      </div>
-                    </div>
-                  }
+          <!-- Selected Assets Tray (Above Search) -->
+          <div class="flex flex-col gap-2 p-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
+            <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest px-1">Selected Assets</span>
+            <p-scrollpanel>
+              <div class="flex flex-wrap gap-2 pb-2">
+                @for (item of selectedItemsList(); track item.tokenId) {
+                <div class="relative group cursor-pointer" (click)="toggleReceiverSelection(item.tokenId)">
+                  <div
+                    class="w-14 h-14 rounded-lg overflow-hidden border border-emerald-500/50 p-0.5 bg-emerald-500/10 transition-all hover:border-red-500 group-hover:opacity-80">
+                    <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-md" />
+                  </div>
+                  <div
+                    class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="pi pi-times text-[7px] font-bold"></i>
+                  </div>
                 </div>
-              </p-scrollpanel>
-            </div>
+                }
+              </div>
+            </p-scrollpanel>
+          </div>
           }
 
           @if (receiverInventory().length > 0) {
           <!-- Your Inventory Search -->
           <div class="flex flex-col gap-2">
             @if (!isReadOnly()) {
-              <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-1">Available Inventory</span>
+            <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-1">Available Inventory</span>
             }
             <p-iconfield iconPosition="left">
               <p-inputicon class="pi pi-search" />
-              <input 
-                type="text" 
-                pInputText 
-                placeholder="Search your inventory..." 
-                class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
-                [value]="receiverSearch()"
-                (input)="receiverSearch.set($any($event.target).value)"
-                [disabled]="isReadOnly()"
-              />
+              <input type="text" pInputText placeholder="Search your inventory..."
+                class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]" [value]="receiverSearch()"
+                (input)="receiverSearch.set($any($event.target).value)" [disabled]="isReadOnly()" />
             </p-iconfield>
           </div>
           }
 
-          <p-scrollpanel [style]="{ width: '100%', height: '300px' }">
-            <div class="flex flex-col pr-4 pb-4">
+          <p-scrollpanel>
+            <div class="flex flex-col">
               @if ((receiverInventory().length || 0) === 0) {
-                <div class="flex-grow flex items-center justify-center text-center py-12">
-                  <p class="text-[10px] text-gray-500 italic uppercase font-bold tracking-widest">Loading your inventory...</p>
-                </div>
+              <div class="flex-grow flex items-center justify-center text-center py-4">
+                <p class="text-[10px] text-gray-500 italic uppercase font-bold tracking-widest">Loading your
+                  inventory...</p>
+              </div>
               } @else {
-                <div class="flex flex-wrap gap-3">
-                  @for (item of filteredReceiverInventory(); track item.tokenId) {
-                    <div class="relative cursor-pointer transition-all hover:scale-105 w-20 h-20"
-                      [class.opacity-50]="isBusy() || isReadOnly()"
-                      [class.cursor-not-allowed]="isBusy() || isReadOnly()"
-                      [pTooltip]="tooltipContentSelf" 
-                      tooltipPosition="top"
-                      (click)="toggleReceiverSelection(item.tokenId)">
-                      <ng-template #tooltipContentSelf>
-                        <div class="flex flex-col gap-1 p-1">
-                          <span class="font-bold text-xs">{{ item.name }}</span>
-                          <span class="text-[10px] font-mono opacity-70">{{ item.contractAddress }}</span>
-                        </div>
-                      </ng-template>
-                      <div class="aspect-square rounded-xl overflow-hidden border p-1 transition-colors"
-                        [class.bg-gray-200]="true"
-                        [class.dark:bg-surface-800]="true"
-                        [class.border-gray-300]="!selectedReceiverIds().has(item.tokenId)"
-                        [class.dark:border-white/5]="!selectedReceiverIds().has(item.tokenId)">
-                        <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-lg" />
-                      </div>
+              <div class="flex flex-wrap gap-3">
+                @for (item of filteredReceiverInventory(); track item.tokenId) {
+                <div class="relative cursor-pointer transition-all hover:scale-105 w-20 h-20"
+                  [class.opacity-50]="isBusy() || isReadOnly()" [class.cursor-not-allowed]="isBusy() || isReadOnly()"
+                  [pTooltip]="tooltipContentSelf" tooltipPosition="top" (click)="toggleReceiverSelection(item.tokenId)">
+                  <ng-template #tooltipContentSelf>
+                    <div class="flex flex-col gap-1 p-1">
+                      <span class="font-bold text-xs">{{ item.name }}</span>
+                      <span class="text-[10px] font-mono opacity-70">{{ item.contractAddress }}</span>
                     </div>
-                  }
-
-                  @if (filteredReceiverInventory().length === 0 && receiverInventory().length > 0) {
-                    <div class="w-full flex flex-col items-center justify-center py-12 text-gray-600">
-                      <i class="pi pi-search text-2xl mb-2 opacity-20"></i>
-                      <span class="text-[10px] uppercase font-bold tracking-widest text-center">No items match your search</span>
-                    </div>
-                  }
+                  </ng-template>
+                  <div class="aspect-square rounded-xl overflow-hidden border p-1 transition-colors"
+                    [class.bg-gray-200]="true" [class.border-gray-300]="!selectedReceiverIds().has(item.tokenId)">
+                    <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-lg" />
+                  </div>
                 </div>
+                }
+
+                @if (filteredReceiverInventory().length === 0 && receiverInventory().length > 0) {
+                <div class="w-full flex flex-col items-center justify-center py-4 text-gray-600">
+                  <i class="pi pi-search text-2xl mb-2 opacity-20"></i>
+                  <span class="text-[10px] uppercase font-bold tracking-widest text-center">No items match your
+                    search</span>
+                </div>
+                }
+              </div>
               }
             </div>
           </p-scrollpanel>
-          <div class="pt-4 border-t border-gray-200 dark:border-white/5 flex justify-between items-center">
+          <div class="border-t border-gray-200 flex justify-between items-center">
             <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Selected Items</span>
             <p-badge [value]="selectedReceiverIds().size" severity="success"></p-badge>
           </div>
@@ -530,29 +525,31 @@
     <!-- Handshake Controls -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
       <!-- Gas Payer Selection -->
-      <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+      <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col gap-3">
         <h5 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Network Fees</h5>
         <p-button
           [label]="trade.gasPayer === userRole() ? 'You are paying gas' : (trade.gasPayer ? 'Peer is paying gas' : 'I will pay the gas')"
           [icon]="trade.gasPayer ? 'pi pi-check-circle' : 'pi pi-bolt'"
           [severity]="trade.gasPayer === userRole() ? 'success' : (trade.gasPayer ? 'secondary' : 'warn')"
           [variant]="trade.gasPayer === userRole() ? 'outlined' : 'text'"
-          [disabled]="isBusy() || (trade.gasPayer && trade.gasPayer !== userRole())" styleClass="w-full" (onClick)="toggleGasPayer()">
+          [disabled]="isBusy() || (trade.gasPayer && trade.gasPayer !== userRole())" styleClass="w-full"
+          (onClick)="toggleGasPayer()">
         </p-button>
       </div>
 
       <!-- Acceptance Handshake -->
-      <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+      <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col gap-3">
         <h5 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Confirmation</h5>
         <div class="flex gap-2">
           <p-button
             [label]="(userRole() === 'sender' ? trade.senderAccepted : trade.receiverAccepted) ? 'Accepted' : 'Accept Terms'"
             [icon]="(userRole() === 'sender' ? trade.senderAccepted : trade.receiverAccepted) ? 'pi pi-check' : 'pi pi-circle'"
             [severity]="(userRole() === 'sender' ? trade.senderAccepted : trade.receiverAccepted) ? 'success' : 'secondary'"
-            class="flex-1" [disabled]="isBusy() || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
+            class="flex-1"
+            [disabled]="isBusy() || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
             (onClick)="toggleLocalAcceptance()">
           </p-button>
-          <div class="flex flex-col justify-center px-3 border-l border-gray-200 dark:border-white/5">
+          <div class="flex flex-col justify-center px-3 border-l border-gray-200">
             <span class="text-[8px] uppercase text-gray-600 font-bold">Counterpart</span>
             <p-tag
               [severity]="(userRole() === 'sender' ? trade.receiverAccepted : trade.senderAccepted) ? 'success' : 'warn'"
@@ -569,36 +566,46 @@
 
   <ng-template pTemplate="footer">
     @if (liveTrade(); as trade) {
-    <div class="flex justify-between w-full pt-4 border-t border-gray-200 dark:border-white/5">
+    <div class="flex justify-between w-full pt-4 border-t border-gray-200">
       @if (isReadOnly()) {
-        <div class="flex items-center gap-3 bg-emerald-500/10 px-6 py-2 rounded-2xl border border-emerald-500/20 w-full justify-center">
-          <i class="pi pi-check-circle text-emerald-500 text-lg"></i>
-          <span class="text-sm font-bold text-emerald-500 uppercase tracking-widest">Trade Finalized & Settled</span>
-        </div>
+      @if(trade.status === 'rejected') {
+      <div
+        class="flex items-center gap-3 bg-red-500/10 px-6 py-2 rounded-2xl border border-red-500/20 w-full justify-center">
+        <i class="pi pi-times-circle text-red-500 text-lg"></i>
+        <span class="text-sm font-bold text-red-500 uppercase tracking-widest">Trade Rejected</span>
+      </div>
       } @else {
-        <div class="flex gap-2 items-center">
-          <p-button label="Reject Proposal" icon="pi pi-times" severity="danger" [text]="true"
-            (onClick)="rejectOffer(trade)" styleClass="text-xs" [disabled]="isBusy()">
-          </p-button>
-          
-          @if (enableHardRevoke && trade.seaportOrder && !isGasPayer()) {
-            <p-button label="Hard Revoke (On-Chain)" icon="pi pi-shield" severity="danger" [outlined]="true"
-              [loading]="isRevoking()" (onClick)="hardRevoke(trade)" styleClass="text-[10px] h-8" [disabled]="isBusy()">
-            </p-button>
-          }
-        </div>
+      <div
+        class="flex items-center gap-3 bg-emerald-500/10 px-6 py-2 rounded-2xl border border-emerald-500/20 w-full justify-center">
+        <i class="pi pi-check-circle text-emerald-500 text-lg"></i>
+        <span class="text-sm font-bold text-emerald-500 uppercase tracking-widest">Trade Finalized & Settled</span>
+      </div>
+      }
+      } @else {
+      <div class="flex gap-2 items-center">
+        <p-button label="Reject Proposal" icon="pi pi-times" severity="danger" [text]="true"
+          (onClick)="rejectOffer(trade)" styleClass="text-xs" [disabled]="isBusy()">
+        </p-button>
 
-        <div class="flex gap-2">
-          <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="isReviewVisible.set(false)" [disabled]="isBusy()">
-          </p-button>
-          <p-button
-            [label]="isGasPayer() ? 'Finalize & Settle' : (trade.lockedByNonPayer ? 'Terms Locked' : 'Lock & Finalize')"
-            [icon]="isGasPayer() ? 'pi pi-lock' : (trade.lockedByNonPayer ? 'pi pi-check' : 'pi pi-lock')"
-            severity="success" [loading]="isSubmitting()" 
-            [disabled]="isBusy() || !trade.senderAccepted || !trade.receiverAccepted || !trade.gasPayer || (isGasPayer() && !isLockedByPeer()) || (!isGasPayer() && trade.lockedByNonPayer) || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
-            (onClick)="confirmAcceptance()">
-          </p-button>
-        </div>
+        @if (enableHardRevoke && trade.seaportOrder && !isGasPayer()) {
+        <p-button label="Hard Revoke (On-Chain)" icon="pi pi-shield" severity="danger" [outlined]="true"
+          [loading]="isRevoking()" (onClick)="hardRevoke(trade)" styleClass="text-[10px] h-8" [disabled]="isBusy()">
+        </p-button>
+        }
+      </div>
+
+      <div class="flex gap-2">
+        <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="isReviewVisible.set(false)"
+          [disabled]="isBusy()">
+        </p-button>
+        <p-button
+          [label]="isGasPayer() ? 'Finalize & Settle' : (trade.lockedByNonPayer ? 'Terms Locked' : 'Lock & Finalize')"
+          [icon]="isGasPayer() ? 'pi pi-lock' : (trade.lockedByNonPayer ? 'pi pi-check' : 'pi pi-lock')"
+          severity="success" [loading]="isSubmitting()"
+          [disabled]="isBusy() || !trade.senderAccepted || !trade.receiverAccepted || !trade.gasPayer || (isGasPayer() && !isLockedByPeer()) || (!isGasPayer() && trade.lockedByNonPayer) || (trade.items?.length || 0) === 0 || (trade.receiverItems?.length || 0) === 0"
+          (onClick)="confirmAcceptance()">
+        </p-button>
+      </div>
       }
     </div>
     }

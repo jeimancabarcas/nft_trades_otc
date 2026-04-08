@@ -6,14 +6,14 @@
     @if (web3Service.currentAccount()) {
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
       <div>
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Your Collections</h2>
-        <p class="text-gray-500 dark:text-gray-400 text-sm">Viewing authorized Habbo contracts on Ethereum Mainnet</p>
+        <h2 class="text-3xl font-bold text-gray-900">Your Collections</h2>
+        <p class="text-gray-500 text-sm">Viewing NFT's on Ethereum Mainnet</p>
       </div>
       <div class="flex items-center gap-3">
         @if (!isLoading() && totalCount() > 0) {
-        <div
-          class="bg-gray-100 dark:bg-surface-800/50 backdrop-blur-sm border border-gray-200 dark:border-surface-700 px-4 py-2 rounded-lg flex items-center gap-3">
-          <span class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-bold">Total Items</span>
+        <div class="bg-gray-100 border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-3">
+          <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Total
+            Items</span>
           <span class="text-2xl font-mono text-primary font-bold">{{ totalCount() }}</span>
         </div>
         }
@@ -33,8 +33,8 @@
     <!-- Skeleton Loading Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       @for (i of [1,2,3,4]; track i) {
-      <div class="p-4 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-surface-800 rounded-xl">
-        <p-skeleton height="200px" styleClass="mb-4 bg-gray-200 dark:bg-surface-800" borderRadius="12px"></p-skeleton>
+      <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+        <p-skeleton height="200px" styleClass="mb-4 bg-gray-200" borderRadius="12px"></p-skeleton>
         <div class="flex justify-between mb-3">
           <p-skeleton width="60%" height="1.5rem"></p-skeleton>
           <p-skeleton width="20%" height="1rem"></p-skeleton>
@@ -48,112 +48,113 @@
     <div class="w-full flex justify-center py-20">
       <p-message severity="warn" text="No Habbo Avatars or Habbo X Rooms found in your wallet."></p-message>
     </div>
-      } @else if (filteredItems().length === 0) {
-        <!-- Search Results Empty State -->
-        <div class="w-full flex flex-col items-center justify-center py-32 text-center">
-          <i class="pi pi-search text-6xl text-gray-400 dark:text-gray-700 mb-6"></i>
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">No matching NFTs found</h3>
-          <p class="text-gray-500 dark:text-gray-400">Try adjusting your search term for "{{ nftService.searchTerm() }}"</p>
-          <p-button label="Clear Search" [variant]="'text'" (onClick)="nftService.searchTerm.set('')" class="mt-4"></p-button>
+    } @else if (filteredItems().length === 0) {
+    <!-- Search Results Empty State -->
+    <div class="w-full flex flex-col items-center justify-center py-32 text-center">
+      <i class="pi pi-search text-6xl text-gray-400 mb-6"></i>
+      <h3 class="text-2xl font-bold text-gray-900 mb-2">No matching NFTs found</h3>
+      <p class="text-gray-500">Try adjusting your search term for "{{ nftService.searchTerm() }}"</p>
+      <p-button label="Clear Search" [variant]="'text'" (onClick)="nftService.searchTerm.set('')"
+        class="mt-4"></p-button>
+    </div>
+    } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+      @for (item of filteredItems(); track item.tokenId) {
+      <p-card [style]="{ width: '100%', height: '100%' }"
+        styleClass="flex flex-col shadow-lg hover:shadow-2xl transition-all duration-300 bg-gray-50 border border-gray-200 overflow-hidden cursor-pointer relative group"
+        [class.border-emerald-500]="nftService.selectedNftIds().has(item.tokenId)"
+        [class.border-2]="nftService.selectedNftIds().has(item.tokenId)"
+        [class.shadow-[0_0_40px_rgba(var(--color-selection-green-rgb),0.3)]]="nftService.selectedNftIds().has(item.tokenId)"
+        (click)="nftService.toggleSelection(item.tokenId)">
+
+        @if (nftService.selectedNftIds().has(item.tokenId)) {
+        <div
+          class="absolute inset-0 bg-emerald-500/10 z-10 pointer-events-none border-emerald-500/20 border-2 rounded-xl">
         </div>
-      } @else {
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="absolute top-4 left-4 z-20">
+          <div
+            class="bg-emerald-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-xl border-2 border-white/40 ring-4 ring-emerald-500/20">
+            <i class="pi pi-check text-xl font-bold"></i>
+          </div>
+        </div>
+        }
 
-          @for (item of filteredItems(); track item.tokenId) {
-          <p-card [style]="{ width: '100%', height: '100%' }"
-            styleClass="flex flex-col shadow-lg hover:shadow-2xl transition-all duration-300 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-surface-800 overflow-hidden cursor-pointer relative group"
-            [class.border-emerald-500]="nftService.selectedNftIds().has(item.tokenId)"
-            [class.border-2]="nftService.selectedNftIds().has(item.tokenId)"
-            [class.shadow-[0_0_40px_rgba(var(--color-selection-green-rgb),0.3)]]="nftService.selectedNftIds().has(item.tokenId)"
-            (click)="nftService.toggleSelection(item.tokenId)">
-
-            @if (nftService.selectedNftIds().has(item.tokenId)) {
-            <div
-              class="absolute inset-0 bg-emerald-500/10 z-10 pointer-events-none border-emerald-500/20 border-2 rounded-xl">
-            </div>
-            <div class="absolute top-4 left-4 z-20">
-              <div
-                class="bg-emerald-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-xl border-2 border-white/40 ring-4 ring-emerald-500/20">
-                <i class="pi pi-check text-xl font-bold"></i>
-              </div>
+        <ng-template #header>
+          <div class="w-full h-52 bg-gray-200 overflow-hidden relative">
+            @if (item.image) {
+            <img [src]="item.image" [alt]="item.name"
+              class="w-full h-full object-cover transition-transform duration-700"
+              [class.brightness-110]="nftService.selectedNftIds().has(item.tokenId)" />
+            } @else {
+            <div class="w-full h-full flex items-center justify-center text-gray-500 bg-gray-200">
+              <i class="pi pi-image text-4xl"></i>
             </div>
             }
-
-            <ng-template #header>
-              <div class="w-full h-52 bg-gray-200 dark:bg-surface-800 overflow-hidden relative">
-                @if (item.image) {
-                <img [src]="item.image" [alt]="item.name"
-                  class="w-full h-full object-cover transition-transform duration-700"
-                  [class.brightness-110]="nftService.selectedNftIds().has(item.tokenId)" />
-                } @else {
-                <div class="w-full h-full flex items-center justify-center text-gray-500 bg-gray-200 dark:bg-surface-800">
-                  <i class="pi pi-image text-4xl"></i>
-                </div>
-                }
-                <div class="absolute top-2 right-2 z-20">
-                  <span
-                    class="text-[10px] bg-black/60 backdrop-blur-md text-white px-2 py-1 rounded border border-white/10 uppercase tracking-tighter">Mainnet</span>
-                </div>
-              </div>
-            </ng-template>
-
-            <div class="flex flex-col gap-3 p-1">
-              <div class="flex justify-between items-start gap-2">
-                <span class="font-bold text-base truncate flex-1"
-                  [class.text-emerald-400]="nftService.selectedNftIds().has(item.tokenId)" [title]="item.name">{{ item.name
-                  }}</span>
-                <span class="text-[10px] px-2 py-0.5 rounded border whitespace-nowrap"
-                  [class.bg-emerald-500/10]="nftService.selectedNftIds().has(item.tokenId)"
-                  [class.text-emerald-400]="nftService.selectedNftIds().has(item.tokenId)"
-                  [class.border-emerald-500/20]="nftService.selectedNftIds().has(item.tokenId)"
-                  [class.bg-primary/10]="!nftService.selectedNftIds().has(item.tokenId)"
-                  [class.text-primary]="!nftService.selectedNftIds().has(item.tokenId)"
-                  [class.border-primary/20]="!nftService.selectedNftIds().has(item.tokenId)">{{ item.type }}</span>
-              </div>
-              <p class="text-xs text-gray-500 font-mono">TokenID: #{{ item.tokenId }}</p>
-
-              <a [href]="'https://opensea.io/assets/ethereum/' + item.contractAddress + '/' + item.tokenId" target="_blank"
-                rel="noopener" pButton label="View on OpenSea" icon="pi pi-external-link"
-                class="w-full mt-2 p-button-outlined p-button-sm no-underline flex justify-center text-xs"
-                (click)="$event.stopPropagation()">
-              </a>
+            <div class="absolute top-2 right-2 z-20">
+              <span
+                class="text-[10px] bg-black/60 backdrop-blur-md text-white px-2 py-1 rounded border border-white/10 uppercase tracking-tighter">Mainnet</span>
             </div>
-          </p-card>
-          }
+          </div>
+        </ng-template>
 
+        <div class="flex flex-col gap-3 p-1">
+          <div class="flex justify-between items-start gap-2">
+            <span class="font-bold text-base truncate flex-1"
+              [class.text-emerald-400]="nftService.selectedNftIds().has(item.tokenId)" [title]="item.name">{{ item.name
+              }}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded border whitespace-nowrap"
+              [class.bg-emerald-500/10]="nftService.selectedNftIds().has(item.tokenId)"
+              [class.text-emerald-400]="nftService.selectedNftIds().has(item.tokenId)"
+              [class.border-emerald-500/20]="nftService.selectedNftIds().has(item.tokenId)"
+              [class.bg-primary/10]="!nftService.selectedNftIds().has(item.tokenId)"
+              [class.text-primary]="!nftService.selectedNftIds().has(item.tokenId)"
+              [class.border-primary/20]="!nftService.selectedNftIds().has(item.tokenId)">{{ item.type }}</span>
+          </div>
+          <p class="text-xs text-gray-500 font-mono">TokenID: #{{ item.tokenId }}</p>
+
+          <a [href]="'https://opensea.io/assets/ethereum/' + item.contractAddress + '/' + item.tokenId" target="_blank"
+            rel="noopener" pButton label="View on OpenSea" icon="pi pi-external-link"
+            class="w-full mt-2 p-button-outlined p-button-sm no-underline flex justify-center text-xs"
+            (click)="$event.stopPropagation()">
+          </a>
         </div>
+      </p-card>
       }
 
-      <!-- Sticky Bottom Action Bar (Protected by currentAccount check) -->
-      @if (selectedCount() > 0) {
-      <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 bg-black">
-        <div
-          class="bg-surface-900/80 backdrop-blur-xl border border-emerald-500/50 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-6 ring-1 ring-emerald-500/10">
-          <div class="flex items-center gap-4">
-            <div
-              class="bg-emerald-500/20 text-emerald-400 rounded-xl px-3 py-1 font-bold font-mono border border-emerald-500/20">
-              {{ selectedCount() }}
-            </div>
-            <div class="flex flex-col">
-              <span class="text-white text-sm font-bold">Selected Assets</span>
-              <span class="text-emerald-500/60 text-[10px] uppercase font-bold tracking-widest leading-none">Ready for
-                trade</span>
-            </div>
-          </div>
+    </div>
+    }
 
-          <div class="flex items-center gap-2">
-            <p-button label="Clear" variant="text" size="small" severity="secondary"
-              (onClick)="nftService.clearSelection()">
-            </p-button>
-
-            <p-button label="New Trade" icon="pi pi-arrow-right" iconPos="right" size="small" severity="success"
-              styleClass="shadow-lg shadow-emerald-500/20" [disabled]="!web3Service.currentAccount()"
-              (onClick)="openTradeModal()">
-            </p-button>
+    <!-- Sticky Bottom Action Bar (Protected by currentAccount check) -->
+    @if (selectedCount() > 0) {
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 bg-black">
+      <div
+        class="bg-surface-900/80 backdrop-blur-xl border border-emerald-500/50 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-6 ring-1 ring-emerald-500/10">
+        <div class="flex items-center gap-4">
+          <div
+            class="bg-emerald-500/20 text-emerald-400 rounded-xl px-3 py-1 font-bold font-mono border border-emerald-500/20">
+            {{ selectedCount() }}
           </div>
+          <div class="flex flex-col">
+            <span class="text-white text-sm font-bold">Selected Assets</span>
+            <span class="text-emerald-500/60 text-[10px] uppercase font-bold tracking-widest leading-none">Ready for
+              trade</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <p-button label="Clear" variant="text" size="small" severity="secondary"
+            (onClick)="nftService.clearSelection()">
+          </p-button>
+
+          <p-button label="New Trade" icon="pi pi-arrow-right" iconPos="right" size="small" severity="success"
+            styleClass="shadow-lg shadow-emerald-500/20" [disabled]="!web3Service.currentAccount()"
+            (onClick)="openTradeModal()">
+          </p-button>
         </div>
       </div>
-      }
+    </div>
+    }
 
     }
 
@@ -161,39 +162,30 @@
 </div>
 
 <!-- Trade Request Dialog -->
-<p-dialog 
-  header="Initialize Trade Request" 
-  [(visible)]="isTradeModalVisible" 
-  [modal]="true" 
-  [style]="{ width: '28rem' }" 
-  [draggable]="false" 
-  [resizable]="false"
+<p-dialog header="Initialize Trade Request" [(visible)]="isTradeModalVisible" [modal]="true"
+  [style]="{ width: '28rem' }" [draggable]="false" [resizable]="false"
   styleClass="rounded-2xl overflow-hidden border border-white/5 bg-surface-950 shadow-2xl"
   maskStyleClass="backdrop-blur-sm">
-  
+
   <div class="flex flex-col gap-6 py-4">
     <div>
       <p class="text-gray-400 text-sm mb-4 leading-relaxed">
         Specify the destination wallet address. This request will be registered in real-time for the peer to review.
       </p>
-      
+
       <div class="flex flex-col gap-2">
-        <label for="peer-wallet" class="text-[10px] font-bold uppercase tracking-widest text-emerald-500 px-1">Peer Wallet Address</label>
+        <label for="peer-wallet" class="text-[10px] font-bold uppercase tracking-widest text-emerald-500 px-1">Peer
+          Wallet Address</label>
         <div class="p-inputgroup flex-1">
           <span class="p-inputgroup-addon bg-surface-900 border-surface-800 text-gray-500">
             <i class="pi pi-wallet"></i>
           </span>
-          <input 
-            type="text" 
-            pInputText 
-            id="peer-wallet"
-            [(ngModel)]="receiverWallet" 
-            placeholder="0x..."
+          <input type="text" pInputText id="peer-wallet" [(ngModel)]="receiverWallet" placeholder="0x..."
             class="w-full bg-surface-900 border-surface-800 text-white placeholder:text-gray-600 focus:border-emerald-500/50"
             [disabled]="isSubmitting()" />
         </div>
         @if (receiverWallet().length > 0 && !isValidReceiver()) {
-          <small class="text-red-400 text-[10px] px-1 font-medium">Please enter a valid Ethereum address (0x...)</small>
+        <small class="text-red-400 text-[10px] px-1 font-medium">Please enter a valid Ethereum address (0x...)</small>
         }
       </div>
     </div>
@@ -202,44 +194,39 @@
     <div class="bg-surface-900/50 rounded-xl p-4 border border-white/5">
       <div class="flex justify-between items-center mb-3">
         <span class="text-xs font-bold text-white">Proposal Summary</span>
-        <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold">{{ selectedCount() }} Items</span>
+        <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold">{{
+          selectedCount() }} Items</span>
       </div>
       <div class="flex -space-x-3 overflow-hidden py-1">
         @for (item of selectedItems(); track item.tokenId; let i = $index) {
-          @if (i < 5) {
-            <div class="inline-block h-10 w-10 rounded-full ring-2 ring-surface-950 bg-surface-800 flex items-center justify-center overflow-hidden border border-white/10" [pTooltip]="item.name">
-              @if (item.image) {
-                <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover" />
-              } @else {
-                <i class="pi pi-image text-[10px] text-gray-500"></i>
-              }
-            </div>
+        @if (i < 5) { <div
+          class="inline-block h-10 w-10 rounded-full ring-2 ring-surface-950 bg-surface-800 flex items-center justify-center overflow-hidden border border-white/10"
+          [pTooltip]="item.name">
+          @if (item.image) {
+          <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover" />
+          } @else {
+          <i class="pi pi-image text-[10px] text-gray-500"></i>
           }
-        }
-        @if (selectedCount() > 5) {
-          <div class="inline-block h-10 w-10 rounded-full ring-2 ring-surface-950 bg-surface-800 flex items-center justify-center text-[10px] font-bold text-gray-400">
-            +{{ selectedCount() - 5 }}
-          </div>
-        }
       </div>
+      }
+      }
+      @if (selectedCount() > 5) {
+      <div
+        class="inline-block h-10 w-10 rounded-full ring-2 ring-surface-950 bg-surface-800 flex items-center justify-center text-[10px] font-bold text-gray-400">
+        +{{ selectedCount() - 5 }}
+      </div>
+      }
     </div>
+  </div>
   </div>
 
   <ng-template #footer>
     <div class="flex gap-3 w-full justify-end pt-2">
-      <p-button 
-        label="Discard" 
-        [text]="true" 
-        severity="secondary" 
-        (onClick)="isTradeModalVisible.set(false)" 
+      <p-button label="Discard" [text]="true" severity="secondary" (onClick)="isTradeModalVisible.set(false)"
         [disabled]="isSubmitting()">
       </p-button>
-      <p-button 
-        label="Send Trade Request" 
-        severity="success" 
-        (onClick)="confirmTradeRequest()" 
-        [loading]="isSubmitting()"
-        [disabled]="!isValidReceiver() || isSubmitting() || selectedCount() === 0"
+      <p-button label="Send Trade Request" severity="success" (onClick)="confirmTradeRequest()"
+        [loading]="isSubmitting()" [disabled]="!isValidReceiver() || isSubmitting() || selectedCount() === 0"
         styleClass="px-6 shadow-lg shadow-emerald-500/10">
       </p-button>
     </div>

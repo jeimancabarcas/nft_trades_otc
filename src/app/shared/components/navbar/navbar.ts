@@ -6,7 +6,6 @@ import { RouterModule } from '@angular/router';
 import { Web3Service } from '../../services/web3.service';
 import { NftService } from '../../services/nft.service';
 import { NotificationService } from '../../services/notification.service';
-import { ThemeService } from '../../services/theme.service';
 
 // PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
@@ -17,33 +16,36 @@ import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
 import { MenuItem } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
+import { ClassNamesModule } from 'primeng/classnames';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.html',
   standalone: true,
   imports: [
-    CommonModule, 
-    ButtonModule, 
+    CommonModule,
+    ButtonModule,
     MenubarModule,
-    InputTextModule, 
-    IconFieldModule, 
+    InputTextModule,
+    IconFieldModule,
     InputIconModule,
     RippleModule,
     RouterModule,
-    TooltipModule
+    TooltipModule,
+    BadgeModule,
+    ClassNamesModule
   ]
 })
 export class Navbar {
   web3Service = inject(Web3Service);
-  themeService = inject(ThemeService);
   protected nftService = inject(NftService);
   private notificationService = inject(NotificationService);
 
   // Use a computed signal to build the menu items reactively, including badges
   items = computed<MenuItem[]>(() => {
     const count = this.notificationService.pendingCount();
-    
+
     return [
       {
         label: 'Inventory',

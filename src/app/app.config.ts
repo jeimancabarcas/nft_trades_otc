@@ -26,7 +26,7 @@ export const appConfig: ApplicationConfig = {
         preset: Material,
         options: {
           prefix: 'p',
-          darkModeSelector: '.dark',
+          darkModeSelector: '.dark-none',
           cssLayer: false
         }
       }

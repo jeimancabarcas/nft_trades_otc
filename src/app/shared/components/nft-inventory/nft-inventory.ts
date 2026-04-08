@@ -16,22 +16,24 @@ import { MessageService } from 'primeng/api';
 import { Web3Service } from '../../services/web3.service';
 import { NftService, NftItem } from '../../services/nft.service';
 import { TradeService } from '../../services/trade.service';
+import { ClassNamesModule } from 'primeng/classnames';
 
 @Component({
   selector: 'app-nft-inventory',
   templateUrl: './nft-inventory.html',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    CardModule, 
-    SkeletonModule, 
-    ButtonModule, 
-    TooltipModule, 
-    MessageModule, 
-    DialogModule, 
-    InputTextModule, 
-    ToastModule
+    CardModule,
+    SkeletonModule,
+    ButtonModule,
+    TooltipModule,
+    MessageModule,
+    DialogModule,
+    InputTextModule,
+    ToastModule,
+    ClassNamesModule
   ],
   providers: [MessageService]
 })
@@ -43,7 +45,7 @@ export class NftInventory {
 
   inventoryItems = signal<NftItem[]>([]);
   isLoading = signal<boolean>(false);
-  
+
   // Trade Modal State
   isTradeModalVisible = signal<boolean>(false);
   receiverWallet = signal<string>('');
@@ -52,13 +54,13 @@ export class NftInventory {
   // Computed
   totalCount = computed(() => this.inventoryItems().length);
   selectedCount = computed(() => this.nftService.selectedNftIds().size);
-  
+
   // Get full NFT objects for the selected IDs to show images in the dialog
   selectedItems = computed(() => {
     const selectedIds = this.nftService.selectedNftIds();
     return this.inventoryItems().filter(item => selectedIds.has(item.tokenId));
   });
-  
+
   isValidReceiver = computed(() => {
     const val = this.receiverWallet().trim();
     return /^0x[a-fA-F0-9]{40}$/.test(val);
@@ -73,8 +75,8 @@ export class NftInventory {
     const term = this.nftService.searchTerm().toLowerCase().trim();
     if (!term) return this.inventoryItems();
 
-    return this.inventoryItems().filter(item => 
-      item.name.toLowerCase().includes(term) || 
+    return this.inventoryItems().filter(item =>
+      item.name.toLowerCase().includes(term) ||
       item.tokenId.toLowerCase().includes(term)
     );
   });
@@ -84,7 +86,7 @@ export class NftInventory {
     // Notice that tracking the account happens synchronously, and the writes happen in decoupled async methods.
     effect(() => {
       const account = this.web3Service.currentAccount();
-      
+
       if (account) {
         this.loadInventory(account);
       } else {
@@ -126,16 +128,16 @@ export class NftInventory {
     const sender = this.web3Service.currentAccount();
     const receiver = this.receiverWallet().trim();
     const selectedIds = this.nftService.selectedNftIds();
-    
+
     if (!sender || !receiver || selectedIds.size === 0) return;
 
     this.isSubmitting.set(true);
     try {
       // Get full NFT objects for the trade record
       const selectedItems = this.inventoryItems().filter(item => selectedIds.has(item.tokenId));
-      
+
       await this.tradeService.createTrade(sender, receiver, selectedItems);
-      
+
       this.messageService.add({
         severity: 'success',
         summary: 'Trade Request Sent',
