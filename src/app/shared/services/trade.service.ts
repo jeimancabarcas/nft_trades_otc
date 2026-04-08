@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Database, ref, push, set, serverTimestamp, query, orderByChild, equalTo, onValue, update, onDisconnect, remove } from 'firebase/database';
+import { Database, ref, push, set, serverTimestamp, query, orderByChild, equalTo, onValue, update, onDisconnect, remove, get } from 'firebase/database';
 import { NftItem } from './nft.service';
 import { Observable } from 'rxjs';
 
@@ -61,6 +61,7 @@ export class TradeService {
 
     await update(tradeRef, {
       [key]: items,
+      status: 'pending',
       senderAccepted: false,
       receiverAccepted: false,
       lockedByNonPayer: false,
@@ -74,10 +75,22 @@ export class TradeService {
    */
   async setAcceptance(tradeId: string, role: 'sender' | 'receiver', accepted: boolean): Promise<void> {
     const tradeRef = ref(this.db, `trades/${tradeId}`);
-    const key = role === 'sender' ? 'senderAccepted' : 'receiverAccepted';
+    
+    // Fetch current state to check other party's acceptance
+    const snapshot = await get(tradeRef);
+    const trade = snapshot.val() as TradeRequest;
+    if (!trade) return;
+
+    const senderAccepted = role === 'sender' ? accepted : (trade.senderAccepted || false);
+    const receiverAccepted = role === 'receiver' ? accepted : (trade.receiverAccepted || false);
+    
+    // Only transition to 'accepted' if both parties agree
+    const newStatus = (senderAccepted && receiverAccepted) ? 'accepted' : 'pending';
 
     await update(tradeRef, {
-      [key]: accepted,
+      senderAccepted,
+      receiverAccepted,
+      status: newStatus,
       lockedByNonPayer: false, // Reset locking if agreement changes
       seaportOrder: null,      // Force re-sign on agreement change
       orderHash: null
@@ -91,10 +104,27 @@ export class TradeService {
     const tradeRef = ref(this.db, `trades/${tradeId}`);
     await update(tradeRef, {
       gasPayer: role,
+      status: 'pending',
       senderAccepted: false,
       receiverAccepted: false,
       lockedByNonPayer: false, // Reset locking sequence
       seaportOrder: null,      // Gas payer change invalidates signature
+      orderHash: null
+    });
+  }
+  
+  /**
+   * Resets both acceptance flags and reverts trade to pending.
+   * Useful when a transaction is cancelled or terms need to be cleared.
+   */
+  async resetTradeAcceptance(tradeId: string): Promise<void> {
+    const tradeRef = ref(this.db, `trades/${tradeId}`);
+    await update(tradeRef, {
+      senderAccepted: false,
+      receiverAccepted: false,
+      status: 'pending',
+      lockedByNonPayer: false,
+      seaportOrder: null,
       orderHash: null
     });
   }

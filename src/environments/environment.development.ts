@@ -1,14 +1,14 @@
 export const environment = {
   production: false,
-  alchemyApiKey: 'YOUR_ALCHEMY_API_KEY',
+  alchemyApiKey: 'demo',
   firebase: {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-    databaseURL: "YOUR_FIREBASE_DATABASE_URL",
-    projectId: "YOUR_FIREBASE_PROJECT_ID",
-    storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
-    appId: "YOUR_FIREBASE_APP_ID"
+    apiKey: "AIzaSyBg4iEQDzFzw4yQ9Www0ZJP6YVPKhj26hE",
+    authDomain: "nft-trading-ca531.firebaseapp.com",
+    databaseURL: "https://nft-trading-ca531-default-rtdb.firebaseio.com",
+    projectId: "nft-trading-ca531",
+    storageBucket: "nft-trading-ca531.firebasestorage.app",
+    messagingSenderId: "1026388629356",
+    appId: "1:1026388629356:web:ae892e4a1a7db0c307c549"
   },
   enableHardRevoke: false
 };

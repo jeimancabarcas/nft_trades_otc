@@ -80,7 +80,10 @@ export class TradeList {
     const trade = this.liveTrade();
     return this.isSubmitting() || this.isRevoking() || (!!trade && !!trade.busyAddress);
   });
-  isReadOnly = computed(() => this.liveTrade()?.status === 'completed');
+  isReadOnly = computed(() => {
+    const status = this.liveTrade()?.status;
+    return status === 'completed' || status === 'rejected';
+  });
   isMeBusy = computed(() => {
     const busy = this.liveTrade()?.busyAddress;
     const me = this.web3Service.currentAccount()?.toLowerCase();
@@ -153,11 +156,33 @@ export class TradeList {
     return trade?.lockedByNonPayer === true;
   });
 
+  // Acceptance status helpers for UI highlighting
+  isMyAcceptanceComplete = computed(() => {
+    const trade = this.liveTrade();
+    const role = this.userRole();
+    if (!trade || !role) return false;
+    return role === 'sender' ? (trade.senderAccepted || false) : (trade.receiverAccepted || false);
+  });
+
+  isPeerAcceptanceComplete = computed(() => {
+    const trade = this.liveTrade();
+    const role = this.userRole();
+    if (!trade || !role) return false;
+    return role === 'sender' ? (trade.receiverAccepted || false) : (trade.senderAccepted || false);
+  });
+
+  // Items currently selected by the user to give
+  selectedItemsList = computed(() => {
+    const ids = this.selectedReceiverIds();
+    const inventory = this.receiverInventory();
+    return inventory.filter(item => ids.has(item.tokenId));
+  });
+
   filteredReceiverInventory = computed(() => {
     const search = this.receiverSearch().toLowerCase();
     const trade = this.liveTrade();
     
-    // If read-only, show historical items from the trade record
+    // If read-only, show historical items from the trade record (unified view)
     if (this.isReadOnly() && trade) {
       const items = this.userRole() === 'sender' ? (trade.items || []) : (trade.receiverItems || []);
       if (!search) return items;
@@ -167,8 +192,10 @@ export class TradeList {
       );
     }
 
-    // Otherwise show live inventory
-    const items = this.receiverInventory();
+    // Otherwise show live available inventory (excluding staged items)
+    const selectedIds = this.selectedReceiverIds();
+    const items = this.receiverInventory().filter(item => !selectedIds.has(item.tokenId));
+    
     if (!search) return items;
     return items.filter(item => 
       item.name.toLowerCase().includes(search) || 
@@ -188,9 +215,6 @@ export class TradeList {
       item.contractAddress.toLowerCase().includes(search)
     );
   });
-
-
-
 
   private hasCleanedUp = false;
   private cleanupEffect = toObservable(this.trades).subscribe(trades => {
@@ -224,7 +248,7 @@ export class TradeList {
   getStatusSeverity(status: string) {
     switch (status) {
       case 'pending': return 'warn';
-      case 'accepted': 
+      case 'accepted': return 'info';
       case 'completed': return 'success';
       case 'rejected': return 'danger';
       case 'cancelled': return 'secondary';
@@ -253,8 +277,8 @@ export class TradeList {
     // Seed selection with current state using safe null check
     this.selectedReceiverIds.set(new Set(currentItems.map(i => i.tokenId)));
 
-    // For completed trades, we skip loading live inventory as assets are likely gone
-    if (trade.status === 'completed') {
+    // For finalized trades, we skip loading live inventory as assets may have moved or it's a historical view
+    if (trade.status === 'completed' || trade.status === 'rejected') {
       this.receiverInventory.set([]);
       return;
     }
@@ -402,13 +426,13 @@ export class TradeList {
                         error.info?.error?.code === 4001;
 
       if (isRejected) {
-        // Automatically remove the confirmation in Firebase as requested
-        await this.tradeService.setAcceptance(trade.id, role, false);
+        // Automatically remove the confirmation for BOTH SIDES in Firebase as requested
+        await this.tradeService.resetTradeAcceptance(trade.id);
 
         this.messageService.add({ 
           severity: 'warn', 
           summary: 'Transaction Cancelled', 
-          detail: 'The action was rejected by your wallet. Acceptance has been reset.' 
+          detail: 'The action was rejected by your wallet. Acceptance has been reset for both parties.' 
         });
       } else {
         this.messageService.add({ 

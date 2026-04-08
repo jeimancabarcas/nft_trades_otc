@@ -120,7 +120,9 @@
       <!-- Sender Items -->
       <div class="bg-black/20 rounded-xl p-3 border border-white/5">
         <div class="flex justify-between items-center mb-2 px-1">
-          <span class="text-[9px] font-bold text-gray-400 uppercase">Offered by {{ formatAddress(trade.sender) }}</span>
+          <span class="text-[9px] font-bold text-gray-400 uppercase">
+            {{ type === 'outgoing' ? 'My Offer' : 'Counterparty Offer' }}
+          </span>
           <span class="text-[9px] text-gray-500 font-mono">{{ trade.items?.length || 0 }} Items</span>
         </div>
         <div class="flex flex-wrap gap-1.5">
@@ -143,8 +145,9 @@
     @if ((trade.status === 'accepted' || trade.status === 'completed') && trade.receiverItems) {
     <div class="bg-emerald-500/5 rounded-xl p-3 border border-emerald-500/10">
       <div class="flex justify-between items-center mb-2 px-1">
-        <span class="text-[9px] font-bold text-emerald-400 uppercase">Received from {{ formatAddress(trade.receiver)
-          }}</span>
+        <span class="text-[9px] font-bold text-emerald-400 uppercase">
+          {{ type === 'incoming' ? 'My Offer' : 'Counterparty Offer' }}
+        </span>
         <span class="text-[9px] text-emerald-500/60 font-mono">{{ trade.receiverItems?.length || 0 }} Items</span>
       </div>
       <div class="flex flex-wrap gap-1.5">
@@ -173,7 +176,7 @@
       [disabled]="!!trade.busyAddress" (onClick)="reviewOffer(trade)"></p-button>
     } @else {
     <p-button label="View Details" icon="pi pi-info-circle" [text]="true" severity="secondary" size="small"
-      class="flex-1" styleClass="w-full p-button-sm"></p-button>
+      class="flex-1" styleClass="w-full p-button-sm" (onClick)="reviewOffer(trade)"></p-button>
     }
   </div>
   </div>
@@ -309,7 +312,25 @@
 
             <div class="w-4 flex justify-center"><i class="pi pi-angle-right text-[10px] text-gray-700"></i></div>
 
-            <!-- Step 3: Lockdown -->
+            <!-- Step 3: Settlement -->
+            <div class="flex-1 flex flex-col gap-2">
+              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
+                <div class="h-full bg-emerald-500 transition-all duration-500"
+                  [style.width]="(trade.status === 'accepted' || trade.status === 'completed') ? '100%' : '0%'"></div>
+              </div>
+              <div class="flex items-center gap-1.5 px-0.5">
+                <i class="pi" [class.pi-verified]="trade.status === 'accepted' || trade.status === 'completed'"
+                  [class.pi-circle]="trade.status !== 'accepted' && trade.status !== 'completed'"
+                  [class.text-emerald-500]="trade.status === 'accepted' || trade.status === 'completed'"
+                  [class.text-gray-600]="trade.status !== 'accepted' && trade.status !== 'completed'"
+                  style="font-size: 10px"></i>
+                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">3. Settlement</span>
+              </div>
+            </div>
+
+            <div class="w-4 flex justify-center"><i class="pi pi-angle-right text-[10px] text-gray-700"></i></div>
+
+            <!-- Step 4: Lockdown -->
             <div class="flex-1 flex flex-col gap-2">
               <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
                 <div class="h-full bg-emerald-500 transition-all duration-500"
@@ -319,22 +340,7 @@
                 <i class="pi" [class.pi-lock]="trade.lockedByNonPayer" [class.pi-circle]="!trade.lockedByNonPayer"
                   [class.text-emerald-500]="trade.lockedByNonPayer" [class.text-gray-600]="!trade.lockedByNonPayer"
                   style="font-size: 10px"></i>
-                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">3. Lockdown</span>
-              </div>
-            </div>
-
-            <div class="w-4 flex justify-center"><i class="pi pi-angle-right text-[10px] text-gray-700"></i></div>
-
-            <!-- Step 4: Settlement -->
-            <div class="flex-1 flex flex-col gap-2">
-              <div class="h-1 rounded-full bg-surface-800 overflow-hidden">
-                <div class="h-full bg-emerald-500 transition-all duration-500"
-                  [style.width]="trade.status === 'accepted' ? '100%' : '0%'"></div>
-              </div>
-              <div class="flex items-center gap-1.5 px-0.5">
-                <i class="pi pi-verified" [class.text-emerald-500]="trade.status === 'accepted'"
-                  [class.text-gray-600]="trade.status !== 'accepted'" style="font-size: 10px"></i>
-                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">4. Settlement</span>
+                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">4. Lockdown</span>
               </div>
             </div>
           </div>
@@ -358,9 +364,14 @@
             @if (isReadOnly()) { Counterpart Assets } 
             @else { {{ userRole() === 'sender' ? 'Counterpart Offer' : 'Incoming Offer' }} }
           </h4>
+          @if (isPeerAcceptanceComplete() && !isReadOnly()) {
+            <p-tag value="AGREED" severity="success" styleClass="text-[8px] font-bold px-1.5 py-0.5 ml-auto"></p-tag>
+          }
         </div>
 
-        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3 transition-all duration-500"
+             [class.!bg-emerald-500/10]="isPeerAcceptanceComplete() && !isReadOnly()"
+             [class.!border-emerald-500/20]="isPeerAcceptanceComplete() && !isReadOnly()">
           <!-- Counterpart Search -->
           <p-iconfield iconPosition="left">
             <p-inputicon class="pi pi-search" />
@@ -417,23 +428,54 @@
           <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
             {{ isReadOnly() ? 'Items You Traded' : 'Your Selection' }}
           </h4>
+          @if (isMyAcceptanceComplete() && !isReadOnly()) {
+            <p-tag value="AGREED" severity="success" styleClass="text-[8px] font-bold px-1.5 py-0.5 ml-auto"></p-tag>
+          }
         </div>
 
-        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-3 transition-all duration-500"
+             [class.!bg-emerald-500/10]="isMyAcceptanceComplete() && !isReadOnly()"
+             [class.!border-emerald-500/20]="isMyAcceptanceComplete() && !isReadOnly()">
+          @if (!isReadOnly() && selectedItemsList().length > 0) {
+            <!-- Selected Assets Tray (Above Search) -->
+            <div class="flex flex-col gap-2 p-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
+              <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest px-1">Selected Assets</span>
+              <p-scrollpanel [style]="{ width: '100%', height: '85px' }">
+                <div class="flex flex-wrap gap-2 pb-2">
+                  @for (item of selectedItemsList(); track item.tokenId) {
+                    <div class="relative group cursor-pointer" (click)="toggleReceiverSelection(item.tokenId)">
+                      <div class="w-14 h-14 rounded-lg overflow-hidden border border-emerald-500/50 p-0.5 bg-emerald-500/10 transition-all hover:border-red-500 group-hover:opacity-80">
+                        <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-md" />
+                      </div>
+                      <div class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="pi pi-times text-[7px] font-bold"></i>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </p-scrollpanel>
+            </div>
+          }
+
           @if (receiverInventory().length > 0) {
           <!-- Your Inventory Search -->
-          <p-iconfield iconPosition="left">
-            <p-inputicon class="pi pi-search" />
-            <input 
-              type="text" 
-              pInputText 
-              placeholder="Search your inventory..." 
-              class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
-              [value]="receiverSearch()"
-              (input)="receiverSearch.set($any($event.target).value)"
-              [disabled]="isReadOnly()"
-            />
-          </p-iconfield>
+          <div class="flex flex-col gap-2">
+            @if (!isReadOnly()) {
+              <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-1">Available Inventory</span>
+            }
+            <p-iconfield iconPosition="left">
+              <p-inputicon class="pi pi-search" />
+              <input 
+                type="text" 
+                pInputText 
+                placeholder="Search your inventory..." 
+                class="w-full !bg-surface-950/30 !border-white/5 !text-[11px]"
+                [value]="receiverSearch()"
+                (input)="receiverSearch.set($any($event.target).value)"
+                [disabled]="isReadOnly()"
+              />
+            </p-iconfield>
+          </div>
           }
 
           <p-scrollpanel [style]="{ width: '100%', height: '300px' }">
@@ -458,20 +500,12 @@
                         </div>
                       </ng-template>
                       <div class="aspect-square rounded-xl overflow-hidden border p-1 transition-colors"
-                        [class.bg-emerald-500/20]="selectedReceiverIds().has(item.tokenId)"
-                        [class.border-emerald-500]="selectedReceiverIds().has(item.tokenId)"
-                        [class.bg-gray-200]="!selectedReceiverIds().has(item.tokenId)"
-                        [class.dark:bg-surface-800]="!selectedReceiverIds().has(item.tokenId)"
+                        [class.bg-gray-200]="true"
+                        [class.dark:bg-surface-800]="true"
                         [class.border-gray-300]="!selectedReceiverIds().has(item.tokenId)"
                         [class.dark:border-white/5]="!selectedReceiverIds().has(item.tokenId)">
                         <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover rounded-lg" />
                       </div>
-                      @if (selectedReceiverIds().has(item.tokenId)) {
-                        <div
-                          class="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-lg border-2 border-surface-950">
-                          <i class="pi pi-check text-[8px] font-bold"></i>
-                        </div>
-                      }
                     </div>
                   }
 
